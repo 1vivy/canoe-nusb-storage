@@ -383,7 +383,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "nusb"
 version = "0.2.7"
-source = "git+https://github.com/1vivy/nusb?rev=bdc148c123c102785cd1d506b77bfeeb794ffeb1#bdc148c123c102785cd1d506b77bfeeb794ffeb1"
+source = "git+https://github.com/1vivy/nusb?rev=2d58dbc167a85c75c61462270cde903eca023c35#2d58dbc167a85c75c61462270cde903eca023c35"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",

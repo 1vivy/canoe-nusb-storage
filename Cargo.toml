@@ -6,9 +6,9 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 [workspace.dependencies]
-nusb = { git = "https://github.com/1vivy/nusb", rev = "bdc148c123c102785cd1d506b77bfeeb794ffeb1", default-features = false }
+nusb = { git = "https://github.com/1vivy/nusb", rev = "2d58dbc167a85c75c61462270cde903eca023c35", default-features = false }
 thiserror = "2"
 
 
 [patch.crates-io]
-nusb = { git = "https://github.com/1vivy/nusb", rev = "bdc148c123c102785cd1d506b77bfeeb794ffeb1" }
+nusb = { git = "https://github.com/1vivy/nusb", rev = "2d58dbc167a85c75c61462270cde903eca023c35" }
