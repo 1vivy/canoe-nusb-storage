@@ -10,7 +10,7 @@ source = "git+https://github.com/1vivy/rust-fs-core?rev=e6e891a#e6e891a0828fcd80
 [[package]]
 name = "am-fs-ext4"
 version = "0.5.1"
-source = "git+https://github.com/1vivy/rust-fs-ext4?rev=8315da024dc352408fe9f005ee5618ac8c4ab29f#8315da024dc352408fe9f005ee5618ac8c4ab29f"
+source = "git+https://github.com/1vivy/rust-fs-ext4?rev=78489ab25594e189b25896b24f19d6f78c5c49ec#78489ab25594e189b25896b24f19d6f78c5c49ec"
 dependencies = [
  "am-fs-core",
  "bitflags",
