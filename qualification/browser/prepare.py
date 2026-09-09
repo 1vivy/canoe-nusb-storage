@@ -23,7 +23,7 @@ def run(*args, **kw):
 
 def source(url, target, expected_sha256):
     # Downloads are build inputs; nothing from the phone is used by this lab.
-    archive = WORK / (target.name + ".tar.gz")
+    archive = WORK / (target.name + "-" + expected_sha256[:16] + ".tar.gz")
     if not archive.exists():
         urllib.request.urlretrieve(url, archive)
     raw = archive.read_bytes()
@@ -61,13 +61,14 @@ def replace(path, old, new):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--wasm-bindgen", required=True)
+    parser.add_argument("--gdt-csum", action="store_true", help="qualify legacy CRC16 descriptors")
     args = parser.parse_args()
     WORK.mkdir(parents=True, exist_ok=True)
     deps = WORK / "deps"
     core = deps / "rust-fs-core"
     ext4 = deps / "rust-fs-ext4"
     inputs = {
-        "ext4": source("https://codeload.github.com/1vivy/rust-fs-ext4/tar.gz/29241bc6767322a203999536096bacc14eb74c1a", ext4, "5a85845b9f7de18cc3b3d8f2bedcef58bf7d3c7afe26efa65d596e9d4b29cd55"),
+        "ext4": source("https://codeload.github.com/1vivy/rust-fs-ext4/tar.gz/5cc5c97a751107714e98bd40a0f420f32878a2de", ext4, "19552b532aeedaf60b173a8a549110aaeb9210637502a60ac4df86c64a67353c"),
         "core": source("https://codeload.github.com/1vivy/rust-fs-core/tar.gz/e6e891a0828fcd80d1c77f52b9ce1f447b8d1a1e", core, "950d42143aa74b178aee03f966a1a4aebcdbed689553c149bbebcefdbd33b495"),
     }
     wasm = WORK / "wasm"
@@ -81,11 +82,12 @@ def main():
         shutil.copyfile(HERE / name, public / name)
     with (public / "ext4.img").open("wb") as out:
         out.truncate(128 * 1024 * 1024)
-    run("mkfs.ext4", "-q", "-F", "-b", "4096", "-E", "lazy_itable_init=0,lazy_journal_init=0", str(public / "ext4.img"))
+    run("mkfs.ext4", "-q", "-F", "-b", "4096", "-E", "lazy_itable_init=0,lazy_journal_init=0", *( ["-O", "^metadata_csum,uninit_bg"] if args.gdt_csum else []), str(public / "ext4.img"))
     with (public / "fat.img").open("wb") as out:
         out.truncate(32 * 1024 * 1024)
     run("mkfs.fat", "-F", "16", str(public / "fat.img"))
     (public / "payload.bin").write_bytes(bytes(range(256)) * 8192)
+    inputs["gdt_csum"] = args.gdt_csum
     inputs["native_clock"] = False
     inputs["native_pid"] = False
     inputs["wasm_sha256"] = hashlib.sha256((public / "pkg/canoe_browser_probe_bg.wasm").read_bytes()).hexdigest()

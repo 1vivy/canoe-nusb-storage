@@ -9,7 +9,7 @@
     "fork": "https://github.com/1vivy/rust-fs-ext4",
     "upstream": "https://github.com/christhomas/rust-fs-ext4.git",
     "upstreamRevision": "3a95a96dd70a9d86ed0827ed2daa4bbf22b7a617",
-    "integrationRevision": "29241bc6767322a203999536096bacc14eb74c1a"
+    "integrationRevision": "5cc5c97a751107714e98bd40a0f420f32878a2de"
   },
   "fastboot-rs": {
     "fork": "https://github.com/1vivy/fastboot-rs",

@@ -113,7 +113,7 @@ dependencies = [
 [[package]]
 name = "fastboot-protocol"
 version = "0.4.0"
-source = "git+https://github.com/1vivy/fastboot-rs?rev=ff063ae#ff063ae5449e2244d75287de8d852daf01912ad0"
+source = "git+https://github.com/1vivy/fastboot-rs?rev=ff063ae5449e2244d75287de8d852daf01912ad0#ff063ae5449e2244d75287de8d852daf01912ad0"
 dependencies = [
  "bytes",
  "futures",
@@ -125,7 +125,7 @@ dependencies = [
 [[package]]
 name = "fatfs"
 version = "0.4.0"
-source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
+source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead0a014a6fa93ef8302e60d02c342e0b6d4#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
 dependencies = [
  "bitflags",
  "log",

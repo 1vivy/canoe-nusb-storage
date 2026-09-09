@@ -9,9 +9,14 @@ use wasm_bindgen_futures::JsFuture;
 export async function chooseFastbootDevice() {
   return navigator.usb.requestDevice({ filters: [{classCode: 255, subclassCode: 66, protocolCode: 3}] });
 }
-export function fastbootInterface(device) {
-  const config = device.configuration;
-  if (!config) throw new Error('USB configuration is not selected');
+export async function fastbootInterface(device) {
+  let config = device.configuration;
+  if (!config) {
+    config = device.configurations.find(c => c.interfaces.some(i => i.alternates.some(a => a.interfaceClass === 255 && a.interfaceSubclass === 66 && a.interfaceProtocol === 3)));
+    if (!config) throw new Error('Fastboot configuration is missing');
+    await device.selectConfiguration(config.configurationValue);
+    config = device.configuration;
+  }
   const found = config.interfaces.find(i => i.alternate.interfaceClass === 255 && i.alternate.interfaceSubclass === 66 && i.alternate.interfaceProtocol === 3);
   if (!found) throw new Error('Fastboot interface is missing');
   return found.interfaceNumber;
@@ -24,7 +29,7 @@ extern "C" {
     #[wasm_bindgen(catch)]
     async fn chooseFastbootDevice() -> Result<JsValue, JsValue>;
     #[wasm_bindgen(catch)]
-    fn fastbootInterface(device: &web_sys::UsbDevice) -> Result<u8, JsValue>;
+    async fn fastbootInterface(device: &web_sys::UsbDevice) -> Result<u8, JsValue>;
     async fn commandDeadline(milliseconds: u32);
 }
 fn error(e: impl std::fmt::Display) -> JsValue {
@@ -55,7 +60,7 @@ pub async fn open_fastboot(device: web_sys::UsbDevice) -> Result<FastbootSession
         }
     };
     let opened = async {
-        let interface = fastbootInterface(&device)?;
+        let interface = fastbootInterface(&device).await?;
         NusbFastBoot::from_device(native, interface)
             .await
             .map_err(error)

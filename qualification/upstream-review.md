@@ -6,4 +6,4 @@
 - rust-fatfs: PR120 (80c4807) and PR121 (1e15bdf) integrated with original attribution; changelog-only conflict reconciled. Full native suite passes, including their Unicode and moved-directory regressions. No duplicate PR opened.
 - nusb: PR221 (4e664c7) inspected but not integrated. Its malformed-descriptor branch calls dec_and_maybe_close both inside and outside the construction result; it also cannot await Drop's close before reopen. The browser facade retains its USBDevice and awaits close explicitly. Native/real WebUSB lifetime qualification remains required.
 
-No private persist image or physical device was used or published. The driver GDT_CSUM write guard remains active until its separate implementation and independent checks pass.
+No private persist image or physical device was used or published. GDT_CSUM is now implemented in upstream-based draft PR145 and integrated at5cc5c97. Its four independent Linux matrix cases pass; combined runtime+GDT native suite passes850 tests. See journal-lifecycle.md for the remaining direct-write recovery gate.

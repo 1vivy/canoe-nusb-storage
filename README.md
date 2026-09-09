@@ -22,7 +22,7 @@ remain unblocked. Browser qualification and independent Linux oracles live in
 `requestFastboot()` (user gesture), `openFastboot(USBDevice)` and
 `FastbootSession`: `getVar`, `command`, bounded `fetch`, `flash`, `hashRange`,
 `usable`, and awaited `close`. Offsets/lengths represented by Rust `u64` use
-JavaScript BigInt. An error retires the session and closes the selected device.
+JavaScript BigInt. Transport/protocol uncertainty or timeout retires the session and closes the selected device. A complete device FAIL keeps framing synchronized and permits optional capability probes.
 The application supplies review, backup, readback, capability and retry policy.
 
 `hashRange` uses CANOE-BDS `sha256-range-v1` and decodes the 43-character
@@ -30,3 +30,5 @@ base64url digest to 32 bytes. Generic upstream code contains no CANOE commands.
 
 All consumers should carry this workspace's `patch.crates-io.nusb` pin if
 they integrate these crates into a larger Rust workspace.
+
+Direct managed writes remain disabled at the application release gate. The ext4 adapter also refuses recovery-marked/pending/aborted journals before writable mount; see [journal lifecycle](qualification/journal-lifecycle.md).

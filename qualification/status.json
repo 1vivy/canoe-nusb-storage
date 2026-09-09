@@ -1,0 +1,20 @@
+{
+  "native": {
+    "ext4BaselineTests": 845,
+    "ext4RuntimeAndGdtTests": 850,
+    "coreSuite": "pass",
+    "fatfsSuite": "pass",
+    "fastbootSuite": "pass",
+    "storageSuite": "pass"
+  },
+  "wasmCompilation": "pass",
+  "linuxBrowserMemoryBroker": {
+    "modernMetadataChecksums": "8 cases and native oracles pass",
+    "gdtCsum": "8 cases and native oracles pass"
+  },
+  "actualUsb": "unqualified",
+  "windowsUsbAndWinUsb": "unqualified",
+  "macos": "unqualified",
+  "phoneWrites": "not performed",
+  "directPersistRelease": "blocked pending journal and USB lifecycle qualification"
+}
