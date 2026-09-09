@@ -73,7 +73,7 @@ def main():
     wasm = WORK / "wasm"
     shutil.copytree(HERE / "wasm", wasm, dirs_exist_ok=True)
     env = dict(os.environ, RUSTFLAGS="--cfg=web_sys_unstable_apis", CARGO_TARGET_DIR=str(WORK / "target"))
-    run("cargo", "build", "--release", "--target", "wasm32-unknown-unknown", "--manifest-path", str(wasm / "Cargo.toml"), env=env)
+    run("cargo", "build", "--locked", "--release", "--target", "wasm32-unknown-unknown", "--manifest-path", str(wasm / "Cargo.toml"), env=env)
     public = WORK / "public"
     public.mkdir(exist_ok=True)
     run(args.wasm_bindgen, "--target", "web", "--out-dir", str(public / "pkg"), str(WORK / "target/wasm32-unknown-unknown/release/canoe_browser_probe.wasm"))

@@ -1,0 +1,238 @@
+{
+  "scope": "b5 maintained forks; synthetic browser memory broker only",
+  "browser": {
+    "browser": "141.0.7390.37",
+    "build": {
+      "ext4": {
+        "url": "https://codeload.github.com/1vivy/rust-fs-ext4/tar.gz/29241bc6767322a203999536096bacc14eb74c1a",
+        "sha256": "5a85845b9f7de18cc3b3d8f2bedcef58bf7d3c7afe26efa65d596e9d4b29cd55"
+      },
+      "core": {
+        "url": "https://codeload.github.com/1vivy/rust-fs-core/tar.gz/e6e891a0828fcd80d1c77f52b9ce1f447b8d1a1e",
+        "sha256": "950d42143aa74b178aee03f966a1a4aebcdbed689553c149bbebcefdbd33b495"
+      },
+      "native_clock": false,
+      "native_pid": false,
+      "wasm_sha256": "b7f3f7977264ae47b9af427cea46fd1cd1f3abab7068e916f619321db53e90b9",
+      "fixtures": {
+        "fat.img": "72766020c2811a628d139647e6a7512a6f51de966470e7da300e8ab88697249e",
+        "ext4.img": "f676e369522fba0a1d923b835c05979f26f092b055f77de5ca24eda8a1f88ce6",
+        "payload.bin": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938"
+      }
+    },
+    "capabilities": {
+      "isolated": true,
+      "secure": true,
+      "sharedArrayBuffer": true,
+      "webusb": true,
+      "filePicker": true,
+      "opfs": true,
+      "grantedDevices": 0
+    },
+    "cases": [
+      {
+        "filesystem": "fat",
+        "fault": null,
+        "kind": "done",
+        "ok": true,
+        "elapsedMs": 241.29000002145767,
+        "metrics": {
+          "read": 4530,
+          "write": 5336,
+          "flush": 5,
+          "readBytes": 2104860,
+          "writeBytes": 2105790,
+          "ticks": 12,
+          "maxTickGapMs": 20.08500000834465
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "ext4",
+        "fault": null,
+        "kind": "done",
+        "ok": true,
+        "elapsedMs": 442.9399999976158,
+        "metrics": {
+          "read": 9,
+          "write": 16840,
+          "flush": 153,
+          "readBytes": 29760,
+          "writeBytes": 68976640,
+          "ticks": 22,
+          "maxTickGapMs": 20.065000027418137
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "fat",
+        "fault": "short-read",
+        "kind": "done",
+        "ok": false,
+        "error": "IO error: browser broker: JsValue(Error: broker read failed or returned a short transfer\nError: broker read failed or returned a short transfer\n    at request (http://127.0.0.1:41741/worker.js:22:11)\n    at globalThis.probeRead (http://127.0.0.1:41741/worker.js:26:41)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:241:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeRead_7823bd9f73ca4060 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:240:63)\n    at canoe_browser_probe.wasm.<canoe_browser_probe[6ed58f025164abc4]::Device as std[2b356c9112ee3216]::io::Read>::read (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[510]:0x5d9c5)\n    at canoe_browser_probe.wasm.std[2b356c9112ee3216]::io::default_read_exact::<canoe_browser_probe[6ed58f025164abc4]::Device> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[479]:0x5bb2f)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::boot_sector::BootSector>::deserialize::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[127]:0x28ecd)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::fs::FileSystem<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>>>::new::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[123]:0x27936)\n    at canoe_browser_probe.wasm.fat_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[118]:0x25c82))",
+        "poisoned": true,
+        "elapsedMs": 6.609999984502792,
+        "metrics": {
+          "read": 1,
+          "write": 0,
+          "flush": 0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "ticks": 0,
+          "maxTickGapMs": 0
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "fat",
+        "fault": "disconnect",
+        "kind": "done",
+        "ok": false,
+        "error": "IO error: browser broker: JsValue(Error: broker read failed or returned a short transfer\nError: broker read failed or returned a short transfer\n    at request (http://127.0.0.1:41741/worker.js:22:11)\n    at globalThis.probeRead (http://127.0.0.1:41741/worker.js:26:41)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:241:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeRead_7823bd9f73ca4060 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:240:63)\n    at canoe_browser_probe.wasm.<canoe_browser_probe[6ed58f025164abc4]::Device as std[2b356c9112ee3216]::io::Read>::read (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[510]:0x5d9c5)\n    at canoe_browser_probe.wasm.std[2b356c9112ee3216]::io::default_read_exact::<canoe_browser_probe[6ed58f025164abc4]::Device> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[479]:0x5bb2f)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::boot_sector::BootSector>::deserialize::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[127]:0x28ecd)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::fs::FileSystem<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>>>::new::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[123]:0x27936)\n    at canoe_browser_probe.wasm.fat_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[118]:0x25c82))",
+        "poisoned": true,
+        "elapsedMs": 5.310000002384186,
+        "metrics": {
+          "read": 1,
+          "write": 0,
+          "flush": 0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "ticks": 0,
+          "maxTickGapMs": 0
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "fat",
+        "fault": "flush",
+        "kind": "done",
+        "ok": false,
+        "error": "browser broker: JsValue(Error: broker flush failed or returned a short transfer\nError: broker flush failed or returned a short transfer\n    at request (http://127.0.0.1:41741/worker.js:22:11)\n    at globalThis.probeFlush (http://127.0.0.1:41741/worker.js:28:31)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:238:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeFlush_f64e768f6585be87 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:237:64)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::file::File<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>, fatfs[d52e79f7ea88120f]::time::NullTimeProvider, fatfs[d52e79f7ea88120f]::fs::LossyOemCpConverter> as std[2b356c9112ee3216]::io::Write>::flush (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[440]:0x58f61)\n    at canoe_browser_probe.wasm.fat_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[118]:0x25e93)\n    at canoe_browser_probe.wasm.fat_probe multivalue shim (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[813]:0x66537)\n    at fat_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:23:22)\n    at self.onmessage (http://127.0.0.1:41741/worker.js:35:5))",
+        "poisoned": true,
+        "elapsedMs": 164.2199999988079,
+        "metrics": {
+          "read": 2093,
+          "write": 5179,
+          "flush": 1,
+          "readBytes": 4670,
+          "writeBytes": 2105469,
+          "ticks": 8,
+          "maxTickGapMs": 20.055000007152557
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "fat",
+        "fault": "timeout",
+        "kind": "done",
+        "ok": false,
+        "error": "IO error: browser broker: JsValue(Error: broker timeout; session unusable\nError: broker timeout; session unusable\n    at request (http://127.0.0.1:41741/worker.js:17:13)\n    at globalThis.probeRead (http://127.0.0.1:41741/worker.js:26:41)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:241:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeRead_7823bd9f73ca4060 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:240:63)\n    at canoe_browser_probe.wasm.<canoe_browser_probe[6ed58f025164abc4]::Device as std[2b356c9112ee3216]::io::Read>::read (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[510]:0x5d9c5)\n    at canoe_browser_probe.wasm.std[2b356c9112ee3216]::io::default_read_exact::<canoe_browser_probe[6ed58f025164abc4]::Device> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[479]:0x5bb2f)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::boot_sector::BootSector>::deserialize::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[127]:0x28ecd)\n    at canoe_browser_probe.wasm.<fatfs[d52e79f7ea88120f]::fs::FileSystem<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>>>::new::<fatfs[d52e79f7ea88120f]::io::StdIoWrapper<canoe_browser_probe[6ed58f025164abc4]::Device>> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[123]:0x27936)\n    at canoe_browser_probe.wasm.fat_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[118]:0x25c82))",
+        "poisoned": true,
+        "elapsedMs": 5005.910000026226,
+        "metrics": {
+          "read": 1,
+          "write": 0,
+          "flush": 0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "ticks": 250,
+          "maxTickGapMs": 20.065000027418137
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "ext4",
+        "fault": "short-read",
+        "kind": "done",
+        "ok": false,
+        "error": "I/O error: browser broker: JsValue(Error: broker read failed or returned a short transfer\nError: broker read failed or returned a short transfer\n    at request (http://127.0.0.1:41741/worker.js:22:11)\n    at globalThis.probeRead (http://127.0.0.1:41741/worker.js:26:41)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:241:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeRead_7823bd9f73ca4060 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:240:63)\n    at canoe_browser_probe.wasm.<canoe_browser_probe[6ed58f025164abc4]::Device as fs_ext4[61187d1b87628673]::block_io::BlockDevice>::read_at (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[495]:0x5cb57)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::superblock::Superblock>::read::<dyn fs_ext4[61187d1b87628673]::block_io::BlockDevice> (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[590]:0x6122d)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::fs::Filesystem>::mount_inner (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[105]:0x20844)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::fs::Filesystem>::mount (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[794]:0x661ae)\n    at canoe_browser_probe.wasm.ext4_probe (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[156]:0x31c9c))",
+        "poisoned": true,
+        "elapsedMs": 9.094999998807907,
+        "metrics": {
+          "read": 1,
+          "write": 0,
+          "flush": 0,
+          "readBytes": 0,
+          "writeBytes": 0,
+          "ticks": 0,
+          "maxTickGapMs": 0
+        },
+        "matchedExpectation": true
+      },
+      {
+        "filesystem": "ext4",
+        "fault": "flush",
+        "kind": "done",
+        "ok": false,
+        "error": "I/O error: browser broker: JsValue(Error: broker flush failed or returned a short transfer\nError: broker flush failed or returned a short transfer\n    at request (http://127.0.0.1:41741/worker.js:22:11)\n    at globalThis.probeFlush (http://127.0.0.1:41741/worker.js:28:31)\n    at http://127.0.0.1:41741/pkg/canoe_browser_probe.js:238:13\n    at handleError (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:490:18)\n    at __wbg_probeFlush_f64e768f6585be87 (http://127.0.0.1:41741/pkg/canoe_browser_probe.js:237:64)\n    at canoe_browser_probe.wasm.<canoe_browser_probe[6ed58f025164abc4]::Device as fs_ext4[61187d1b87628673]::block_io::BlockDevice>::flush (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[561]:0x60020)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::block_cache::CachedDevice as fs_ext4[61187d1b87628673]::block_io::BlockDevice>::flush (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[819]:0x6664a)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::journal_writer::JournalWriter>::commit (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[134]:0x2b5dc)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::fs::Filesystem>::commit_block_buffer (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[73]:0xd29b)\n    at canoe_browser_probe.wasm.<fs_ext4[61187d1b87628673]::fs::Filesystem>::apply_create (http://127.0.0.1:41741/pkg/canoe_browser_probe_bg.wasm:wasm-function[114]:0x246e7))",
+        "poisoned": true,
+        "elapsedMs": 9.754999995231628,
+        "metrics": {
+          "read": 8,
+          "write": 7,
+          "flush": 1,
+          "readBytes": 25664,
+          "writeBytes": 28672,
+          "ticks": 0,
+          "maxTickGapMs": 0
+        },
+        "matchedExpectation": true
+      }
+    ],
+    "errors": [],
+    "matchedExpectations": true
+  },
+  "independentChecks": [
+    {
+      "command": [
+        "e2fsck",
+        "-fn",
+        "/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/ext4.img"
+      ],
+      "exit": 0,
+      "output": "Pass 1: Checking inodes, blocks, and sizes\nPass 2: Checking directory structure\nPass 3: Checking directory connectivity\nPass 4: Checking reference counts\nPass 5: Checking group summary information\n/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/ext4.img: 13/32768 files (7.7% non-contiguous), 14393/32768 blocks\ne2fsck 1.47.4 (6-Mar-2025)\n"
+    },
+    {
+      "command": [
+        "fsck.fat",
+        "-n",
+        "/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/fat.img"
+      ],
+      "exit": 0,
+      "output": "fsck.fat 4.2 (2021-01-31)\n/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/fat.img: 1 files, 1024/16343 clusters\n"
+    },
+    {
+      "command": [
+        "debugfs",
+        "-R",
+        "dump /efisp.fat \"/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/extracted.fat\"",
+        "/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/ext4.img"
+      ],
+      "exit": 0,
+      "output": "debugfs 1.47.4 (6-Mar-2025)\n"
+    },
+    {
+      "command": [
+        "mcopy",
+        "-i",
+        "/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/fat.img",
+        "::browser-result.bin",
+        "/home/vivy/Projects/efisp-projects/canoe-nusb-storage/.work/webapp-feasibility/results/extracted.bin"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "result": "extracted.fat",
+      "bytes": 33554432,
+      "sha256": "72766020c2811a628d139647e6a7512a6f51de966470e7da300e8ab88697249e",
+      "matches": true
+    },
+    {
+      "result": "extracted.bin",
+      "bytes": 2097152,
+      "sha256": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938",
+      "matches": true
+    }
+  ]
+}

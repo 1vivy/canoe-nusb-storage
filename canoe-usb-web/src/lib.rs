@@ -16,12 +16,16 @@ export function fastbootInterface(device) {
   if (!found) throw new Error('Fastboot interface is missing');
   return found.interfaceNumber;
 }
+export async function commandDeadline(milliseconds) {
+  await new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 "#)]
 extern "C" {
     #[wasm_bindgen(catch)]
     async fn chooseFastbootDevice() -> Result<JsValue, JsValue>;
     #[wasm_bindgen(catch)]
     fn fastbootInterface(device: &web_sys::UsbDevice) -> Result<u8, JsValue>;
+    async fn commandDeadline(milliseconds: u32);
 }
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
@@ -81,12 +85,12 @@ impl FastbootSession {
     #[wasm_bindgen(js_name = getVar)]
     pub async fn get_var(&mut self, name: &str) -> Result<String, JsValue> {
         let mut c = self.take()?;
-        let result = c.get_var(name).await;
+        let result = bounded(c.get_var(name), 15_000).await;
         self.finish(c, result).await
     }
     pub async fn command(&mut self, command: &str) -> Result<String, JsValue> {
         let mut c = self.take()?;
-        let result = c.command(command).await;
+        let result = bounded(c.command(command), 120_000).await;
         self.finish(c, result).await
     }
     pub async fn fetch(
@@ -96,7 +100,7 @@ impl FastbootSession {
         length: u32,
     ) -> Result<Vec<u8>, JsValue> {
         let mut c = self.take()?;
-        let result = c.fetch(partition, offset, length).await;
+        let result = bounded(c.fetch(partition, offset, length), 60_000).await;
         self.finish(c, result).await
     }
     /// Caller reviews and authorizes the partition and exact source bytes.
@@ -107,22 +111,30 @@ impl FastbootSession {
             return Err(error("empty image"));
         }
         let mut c = self.take()?;
-        let result = async {
-            let mut download = c.download(size).await.map_err(error)?;
-            download.extend_from_slice(image).await.map_err(error)?;
-            download.finish().await.map_err(error)?;
-            c.flash(partition).await.map_err(error)
-        }
+        let result = bounded(
+            async {
+                let mut download = c.download(size).await.map_err(error)?;
+                download.extend_from_slice(image).await.map_err(error)?;
+                download.finish().await.map_err(error)?;
+                c.flash(partition).await.map_err(error)
+            },
+            120_000,
+        )
         .await;
         match result {
-            Ok(()) => {
+            Some(Ok(())) => {
                 self.client = Some(c);
                 Ok(())
             }
-            Err(e) => {
+            Some(Err(e)) => {
                 drop(c);
                 let _ = JsFuture::from(self.device.close()).await;
                 Err(e)
+            }
+            None => {
+                drop(c);
+                let _ = JsFuture::from(self.device.close()).await;
+                Err(error("USB operation timed out; reconnect"))
             }
         }
     }
@@ -161,18 +173,37 @@ impl FastbootSession {
     async fn finish<T>(
         &mut self,
         client: NusbFastBoot,
-        result: Result<T, fastboot_protocol::nusb::NusbFastBootError>,
+        result: Option<Result<T, fastboot_protocol::nusb::NusbFastBootError>>,
     ) -> Result<T, JsValue> {
         match result {
-            Ok(value) => {
+            Some(Ok(value)) => {
                 self.client = Some(client);
                 Ok(value)
             }
-            Err(e) => {
+            Some(Err(e @ fastboot_protocol::nusb::NusbFastBootError::FastbootFailed(_))) => {
+                // A complete FAIL ends the command and preserves framing.
+                // Stock fastboot legitimately rejects optional BDS getvars.
+                self.client = Some(client);
+                Err(error(e))
+            }
+            Some(Err(e)) => {
                 drop(client);
                 let _ = JsFuture::from(self.device.close()).await;
                 Err(error(e))
             }
+            None => {
+                drop(client);
+                let _ = JsFuture::from(self.device.close()).await;
+                Err(error("USB operation timed out; reconnect"))
+            }
         }
     }
+}
+
+async fn bounded<T>(future: impl std::future::Future<Output = T>, milliseconds: u32) -> Option<T> {
+    futures_lite::future::race(async { Some(future.await) }, async {
+        commandDeadline(milliseconds).await;
+        None
+    })
+    .await
 }

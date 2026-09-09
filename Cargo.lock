@@ -10,7 +10,7 @@ source = "git+https://github.com/1vivy/rust-fs-core?rev=e6e891a#e6e891a0828fcd80
 [[package]]
 name = "am-fs-ext4"
 version = "0.5.1"
-source = "git+https://github.com/1vivy/rust-fs-ext4?rev=29241bc#29241bc6767322a203999536096bacc14eb74c1a"
+source = "git+https://github.com/1vivy/rust-fs-ext4?rev=29241bc6767322a203999536096bacc14eb74c1a#29241bc6767322a203999536096bacc14eb74c1a"
 dependencies = [
  "am-fs-core",
  "bitflags",
@@ -50,6 +50,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "fastboot-protocol",
+ "futures-lite",
  "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -109,7 +110,7 @@ dependencies = [
 [[package]]
 name = "fastboot-protocol"
 version = "0.4.0"
-source = "git+https://github.com/1vivy/fastboot-rs?rev=ff063ae#ff063ae5449e2244d75287de8d852daf01912ad0"
+source = "git+https://github.com/1vivy/fastboot-rs?rev=ff063ae5449e2244d75287de8d852daf01912ad0#ff063ae5449e2244d75287de8d852daf01912ad0"
 dependencies = [
  "bytes",
  "futures",
@@ -127,7 +128,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 [[package]]
 name = "fatfs"
 version = "0.4.0"
-source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
+source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead0a014a6fa93ef8302e60d02c342e0b6d4#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
 dependencies = [
  "bitflags",
  "log",

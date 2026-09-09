@@ -5,6 +5,7 @@ version = 4
 [[package]]
 name = "am-fs-core"
 version = "0.2.10"
+source = "git+https://github.com/1vivy/rust-fs-core?rev=e6e891a#e6e891a0828fcd80d1c77f52b9ce1f447b8d1a1e"
 
 [[package]]
 name = "am-fs-ext4"
@@ -112,8 +113,7 @@ dependencies = [
 [[package]]
 name = "fastboot-protocol"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d68604b2b5b85058d350ce6ecc153ac0a30306118099dfef2a2012544d4fee2e"
+source = "git+https://github.com/1vivy/fastboot-rs?rev=ff063ae#ff063ae5449e2244d75287de8d852daf01912ad0"
 dependencies = [
  "bytes",
  "futures",
@@ -125,7 +125,7 @@ dependencies = [
 [[package]]
 name = "fatfs"
 version = "0.4.0"
-source = "git+https://github.com/rafalh/rust-fatfs?rev=2aefc2a027ce94ed0671752814dac203f0450e11#2aefc2a027ce94ed0671752814dac203f0450e11"
+source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
 dependencies = [
  "bitflags",
  "log",
