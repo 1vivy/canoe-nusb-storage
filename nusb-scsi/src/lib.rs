@@ -5,10 +5,10 @@
 //! while a transfer may still be executing on the device.
 use nusb::{
     descriptors::TransferType,
-    transfer::{Buffer, Bulk, In, Out},
+    transfer::{Buffer, Bulk, ControlIn, ControlType, In, Out, Recipient, TransferError},
     Endpoint,
 };
-use std::future::Future;
+use std::{future::Future, time::Duration};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -22,11 +22,16 @@ pub enum Error {
     CommandFailed,
     #[error("storage session is retired; reconnect required")]
     Retired,
+    #[error("USB initialization timed out; close the device before reconnecting")]
+    InitializationTimeout,
 }
 
 /// Implementations must return actual transferred bytes, never requested bytes.
 /// No `Send` future requirement: WebUSB executes in its owning JS context.
 pub trait BulkIo {
+    fn max_lun(&self) -> u8 {
+        15
+    }
     fn write(&mut self, data: &[u8]) -> impl Future<Output = Result<usize, Error>>;
     fn read(&mut self, length: usize) -> impl Future<Output = Result<Vec<u8>, Error>>;
 }
@@ -35,24 +40,128 @@ pub struct NusbIo {
     input: Endpoint<Bulk, In>,
     output: Endpoint<Bulk, Out>,
     input_packet_size: usize,
+    max_lun: u8,
+    #[cfg(target_arch = "wasm32")]
+    web_device: Option<web_sys::UsbDevice>,
 }
 impl NusbIo {
+    /// Open BOT only after GET_MAX_LUN has completed. Native nusb enforces the
+    /// timeout and returns the control completion; do not race/drop that future.
+    /// The caller owns the claimed interface and releases it on failure.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn connect(
+        interface: nusb::Interface,
+        alternate: u8,
+        timeout: Duration,
+    ) -> Result<Self, Error> {
+        Self::initialize(interface, alternate, timeout).await
+    }
+
+    /// Browser connection owns its USBDevice, so a failed/timed-out open can
+    /// await device.close() and abort EP0 before returning. The device must not
+    /// be used concurrently through another wrapper. No configuration, alternate
+    /// setting or driver is changed. The caller supplies an already selected
+    /// active interface from the user-granted device. Await this future to
+    /// completion: a caller cancelling it must itself await device.close().
+    #[cfg(target_arch = "wasm32")]
+    pub async fn connect_web(
+        device: web_sys::UsbDevice,
+        interface_number: u8,
+        alternate: u8,
+        timeout: Duration,
+    ) -> Result<Self, Error> {
+        validate_timeout(timeout)?;
+        let opened = futures_lite::future::race(
+            async {
+                let configuration = device
+                    .configuration()
+                    .ok_or(Error::Protocol("no active USB configuration"))?;
+                let selected = configuration
+                    .interfaces()
+                    .into_iter()
+                    .find(|entry| entry.interface_number() == interface_number)
+                    .ok_or(Error::Protocol("selected USB interface is missing"))?;
+                if selected.alternate().alternate_setting() != alternate {
+                    return Err(Error::Protocol("selected alternate setting is not active"));
+                }
+                let native = nusb::Device::from_js(device.clone()).await?;
+                let interface = native.claim_interface(interface_number).await?;
+                Self::initialize(interface, alternate, timeout).await
+            },
+            async {
+                futures_timer::Delay::new(timeout).await;
+                Err(Error::InitializationTimeout)
+            },
+        )
+        .await;
+        match opened {
+            Ok(mut io) => {
+                io.web_device = Some(device);
+                Ok(io)
+            }
+            Err(error) => {
+                // nusb's WebUSB control timeout is currently ignored. Merely
+                // dropping its Rust future does not cancel the JS transfer.
+                wasm_bindgen_futures::JsFuture::from(device.close())
+                    .await
+                    .map_err(|_| {
+                        Error::Protocol("USB close failed after initialization failure")
+                    })?;
+                Err(error)
+            }
+        }
+    }
+
+    async fn initialize(
+        interface: nusb::Interface,
+        alternate: u8,
+        timeout: Duration,
+    ) -> Result<Self, Error> {
+        validate_timeout(timeout)?;
+        let mut io = Self::from_interface(&interface, alternate)?;
+        io.max_lun = parse_max_lun(
+            interface
+                .control_in(get_max_lun_request(interface.interface_number()), timeout)
+                .await,
+        )?;
+        Ok(io)
+    }
+
+    pub fn max_lun(&self) -> u8 {
+        self.max_lun
+    }
+
     /// Cancel and drain pending transfers before releasing the owning interface.
     /// The caller must impose a deadline; a vanished device must not hang teardown.
-    pub async fn close(mut self) {
-        self.input.cancel_all();
-        self.output.cancel_all();
+    pub async fn close(mut self) -> Result<(), Error> {
+        #[cfg(target_arch = "wasm32")]
+        if let Some(device) = self.web_device.take() {
+            // WebUSB has no per-transfer cancellation. Closing the device
+            // aborts real pending promises before their completion is drained.
+            wasm_bindgen_futures::JsFuture::from(device.close())
+                .await
+                .map_err(|_| Error::Protocol("USB device close failed"))?;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            self.input.cancel_all();
+            self.output.cancel_all();
+        }
         while self.input.pending() != 0 {
             let _ = self.input.next_complete().await;
         }
         while self.output.pending() != 0 {
             let _ = self.output.next_complete().await;
         }
+        Ok(())
     }
 
     /// Require the selected alternate setting to be already active. Never
     /// choose a different alternate setting or detach a kernel storage driver.
-    pub fn from_interface(interface: nusb::Interface, alternate: u8) -> Result<Self, Error> {
+    fn from_interface(interface: &nusb::Interface, alternate: u8) -> Result<Self, Error> {
+        if interface.get_alt_setting() != alternate {
+            return Err(Error::Protocol("selected alternate setting is not active"));
+        }
         let descriptor = interface
             .descriptors()
             .find(|d| d.alternate_setting() == alternate)
@@ -73,10 +182,16 @@ impl NusbIo {
             input: interface.endpoint(input.address())?,
             output: interface.endpoint(output.address())?,
             input_packet_size: input.max_packet_size(),
+            max_lun: 0,
+            #[cfg(target_arch = "wasm32")]
+            web_device: None,
         })
     }
 }
 impl BulkIo for NusbIo {
+    fn max_lun(&self) -> u8 {
+        self.max_lun
+    }
     async fn write(&mut self, data: &[u8]) -> Result<usize, Error> {
         self.output.submit(data.to_vec().into());
         let completion = self.output.next_complete().await;
@@ -106,7 +221,7 @@ pub struct Scsi<T> {
 }
 impl<T: BulkIo> Scsi<T> {
     pub fn new(io: T, lun: u8) -> Result<Self, Error> {
-        if lun > 15 {
+        if lun > 15 || lun > io.max_lun() {
             return Err(Error::Protocol("invalid LUN"));
         }
         Ok(Self {
@@ -249,6 +364,36 @@ impl<T: BulkIo> Scsi<T> {
             .map(|_| ())
     }
 }
+
+fn validate_timeout(timeout: Duration) -> Result<(), Error> {
+    if timeout.is_zero() || timeout > Duration::from_secs(60) {
+        return Err(Error::Protocol(
+            "initialization timeout must be positive and at most 60 seconds",
+        ));
+    }
+    Ok(())
+}
+
+fn get_max_lun_request(interface: u8) -> ControlIn {
+    ControlIn {
+        control_type: ControlType::Class,
+        recipient: Recipient::Interface,
+        request: 0xfe,
+        value: 0,
+        index: u16::from(interface),
+        length: 1,
+    }
+}
+
+fn parse_max_lun(response: Result<Vec<u8>, TransferError>) -> Result<u8, Error> {
+    match response {
+        Ok(bytes) if bytes.len() == 1 && bytes[0] <= 15 => Ok(bytes[0]),
+        // USB MSC BOT permits single-LUN devices to stall GET_MAX_LUN.
+        Err(TransferError::Stall) => Ok(0),
+        Ok(_) => Err(Error::Protocol("invalid GET_MAX_LUN response")),
+        Err(error) => Err(error.into()),
+    }
+}
 fn block_command(
     op: u8,
     lba: u32,
@@ -276,6 +421,57 @@ fn block_command(
 mod tests {
     use super::*;
     use std::collections::VecDeque;
+    #[test]
+    fn get_max_lun_targets_the_selected_interface() {
+        let request = get_max_lun_request(7);
+        assert_eq!(request.control_type, ControlType::Class);
+        assert_eq!(request.recipient, Recipient::Interface);
+        assert_eq!(
+            (
+                request.request,
+                request.value,
+                request.index,
+                request.length
+            ),
+            (0xfe, 0, 7, 1)
+        );
+    }
+    #[test]
+    fn max_lun_requires_a_valid_reply_or_the_standard_single_lun_stall() {
+        assert_eq!(parse_max_lun(Ok(vec![0])).unwrap(), 0);
+        assert_eq!(parse_max_lun(Ok(vec![15])).unwrap(), 15);
+        assert_eq!(parse_max_lun(Err(TransferError::Stall)).unwrap(), 0);
+        for response in [vec![], vec![16], vec![0, 0]] {
+            assert!(matches!(
+                parse_max_lun(Ok(response)),
+                Err(Error::Protocol(_))
+            ));
+        }
+        assert!(matches!(
+            parse_max_lun(Err(TransferError::Cancelled)),
+            Err(Error::Usb(TransferError::Cancelled))
+        ));
+        assert!(validate_timeout(Duration::ZERO).is_err());
+        assert!(validate_timeout(Duration::from_secs(61)).is_err());
+        assert!(validate_timeout(Duration::from_secs(5)).is_ok());
+    }
+    #[test]
+    fn selected_lun_cannot_exceed_the_connected_transport() {
+        struct SingleLun;
+        impl BulkIo for SingleLun {
+            fn max_lun(&self) -> u8 {
+                0
+            }
+            async fn write(&mut self, _: &[u8]) -> Result<usize, Error> {
+                panic!("no transfer before LUN validation")
+            }
+            async fn read(&mut self, _: usize) -> Result<Vec<u8>, Error> {
+                panic!("no transfer before LUN validation")
+            }
+        }
+        assert!(Scsi::new(SingleLun, 0).is_ok());
+        assert!(matches!(Scsi::new(SingleLun, 1), Err(Error::Protocol(_))));
+    }
     struct Fake {
         reads: VecDeque<Vec<u8>>,
         short: bool,

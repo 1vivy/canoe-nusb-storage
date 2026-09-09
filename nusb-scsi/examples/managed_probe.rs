@@ -135,28 +135,20 @@ fn run() -> Result<(), String> {
         "interface",
         json!({"configuration":configuration.configuration_value(),"interface":descriptor.interface_number(),"alternate":descriptor.alternate_setting(),"class":"ff/06/50","kernelDetach":false}),
     );
-    let io = NusbIo::from_interface(interface.clone(), descriptor.alternate_setting())
-        .map_err(|e| e.to_string())?;
-    let mut scsi = Scsi::new(io, 0).map_err(|e| e.to_string())?;
-    let result = block_on(commands(&mut scsi));
-    if result.is_err() && scsi.is_usable() {
-        match block_on(bounded("request-sense", scsi.request_sense())) {
-            Ok(sense) => emit("sense", json!({"bytes":sense})),
-            Err(error) => emit("sense", json!({"error":error})),
+    let result = match block_on(NusbIo::connect(
+        interface.clone(),
+        descriptor.alternate_setting(),
+        Duration::from_secs(5),
+    )) {
+        Ok(io) => {
+            emit(
+                "get-max-lun",
+                json!({"maximumLun":io.max_lun(),"selectedLun":0}),
+            );
+            block_on(run_connected(io))
         }
-    }
-    let io = scsi.into_inner();
-    let drained = block_on(race(
-        async {
-            io.close().await;
-            true
-        },
-        async {
-            futures_timer::Delay::new(Duration::from_secs(5)).await;
-            false
-        },
-    ));
-    emit("transfers-drained", json!({"ok":drained}));
+        Err(error) => Err(format!("initialize: {error}")),
+    };
     // Native nusb offers explicit waited interface release; the device closes
     // after every interface/endpoint reference and this final handle are dropped.
     let release = interface.release().wait().map_err(|e| e.to_string());
@@ -171,10 +163,33 @@ fn run() -> Result<(), String> {
     );
     result?;
     release?;
-    if !drained {
-        return Err("transfer teardown deadline expired".into());
-    }
     Ok(())
+}
+
+async fn run_connected(io: NusbIo) -> Result<(), String> {
+    let mut scsi = Scsi::new(io, 0).map_err(|error| error.to_string())?;
+    let result = commands(&mut scsi).await;
+    if result.is_err() && scsi.is_usable() {
+        match bounded("request-sense", scsi.request_sense()).await {
+            Ok(sense) => emit("sense", json!({"bytes":sense})),
+            Err(error) => emit("sense", json!({"error":error})),
+        }
+    }
+    let io = scsi.into_inner();
+    let closed = race(
+        async { io.close().await.map_err(|error| error.to_string()) },
+        async {
+            futures_timer::Delay::new(Duration::from_secs(5)).await;
+            Err("transfer teardown deadline expired".into())
+        },
+    )
+    .await;
+    emit(
+        "transfers-drained",
+        json!({"ok":closed.is_ok(),"error":closed.as_ref().err()}),
+    );
+    result?;
+    closed
 }
 fn main() {
     if let Err(error) = run() {
