@@ -8,6 +8,9 @@ not detach or claim OS-managed class `08` storage. On any uncertain command,
 retire the session and reconnect. A command status is not a durability claim:
 filesystem flush must reach SCSI SYNCHRONIZE CACHE and its successful CSW.
 
+Linux hosts can use the scoped [managed USB access rule](contrib/udev/README.md)
+to grant the active local user access to `1209:ca0f`.
+
 Live persist provisioning requires an independently retained backup before
 writable access. Full-partition flashing is not a fallback in this workspace.
 

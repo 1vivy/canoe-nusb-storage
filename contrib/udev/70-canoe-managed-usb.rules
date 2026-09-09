@@ -1,0 +1,3 @@
+# CANOE-BDS managed export only. Keep before 73-seat-late.rules so logind
+# grants the active local user access to the USB device node.
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="1209", ATTR{idProduct}=="ca0f", TAG+="uaccess"
