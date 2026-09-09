@@ -17,6 +17,9 @@ export interface Entry {
   name: string;
   kind: "file" | "directory" | "symlink" | "other";
   size: number;
+  /** Ext4-only inode incarnation, read with the dependency checksum checks. */
+  inode?: number;
+  generation?: number;
 }
 export interface Inspection {
   kind: "fat" | "ext4";

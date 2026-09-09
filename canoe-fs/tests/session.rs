@@ -92,6 +92,11 @@ fn both_filesystems_preserve_unrelated_files_and_reopen_verified() {
         assert!(fs.inspect().unwrap()["freeBytes"].as_u64().unwrap() > 16 * 1024 * 1024);
         fs.create_file("/unrelated.bin").unwrap();
         fs.write("/unrelated.bin", 0, b"preserve").unwrap();
+        if kind == "ext4" {
+            let entry = fs.stat("/unrelated.bin").unwrap();
+            assert!(entry.inode.is_some_and(|n| n > 2));
+            assert!(entry.generation.is_some_and(|n| n > 0));
+        }
         fs.mkdir("/managed").unwrap();
         fs.create_file("/managed/stage.bin").unwrap();
         assert!(fs.write("/managed/stage.bin", 1, b"gap").is_err());

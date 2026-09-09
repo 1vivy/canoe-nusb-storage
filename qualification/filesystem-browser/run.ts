@@ -156,6 +156,10 @@ try {
         assert(info.freeBytes > 16 * 1024 * 1024, "free space");
         await rw.createFile("/unrelated");
         await rw.write("/unrelated", 0n, new TextEncoder().encode("preserve"));
+        if (kind === "ext4") {
+          const entry = await rw.stat("/unrelated");
+          assert(entry.inode > 2 && entry.generation > 0 && info.uuid.length === 16, "ext4 incarnation metadata");
+        }
         await rw.mkdir("/managed");
         await rw.createFile("/managed/stage");
         const payload = Uint8Array.from({ length: 40000 }, (_, n) => n % 251);

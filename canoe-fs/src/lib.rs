@@ -123,6 +123,10 @@ pub struct Entry {
     pub name: String,
     pub kind: &'static str,
     pub size: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inode: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub generation: Option<u32>,
 }
 pub struct Session {
     mounted: Option<Mounted>,
@@ -262,6 +266,8 @@ impl Session {
                         name: "/".into(),
                         kind: "directory",
                         size: 0,
+                        inode: None,
+                        generation: None,
                     });
                 }
                 let (parent, name) = value.rsplit_once('/').unwrap();
@@ -282,13 +288,15 @@ impl Session {
                             name: item.file_name(),
                             kind: if item.is_dir() { "directory" } else { "file" },
                             size: item.len(),
+                            inode: None,
+                            generation: None,
                         });
                     }
                 }
                 Err("not found".into())
             }
             Mounted::Ext4(fs) => {
-                let (_, inode, _) = ext_inode(fs, value).map_err(error)?;
+                let (ino, inode, _) = ext_inode(fs, value).map_err(error)?;
                 Ok(Entry {
                     name: value.rsplit('/').next().unwrap_or("/").into(),
                     kind: if inode.is_dir() {
@@ -299,6 +307,8 @@ impl Session {
                         "other"
                     },
                     size: inode.size,
+                    inode: Some(ino),
+                    generation: Some(inode.generation),
                 })
             }
         }
@@ -326,6 +336,8 @@ impl Session {
                         name,
                         kind: if item.is_dir() { "directory" } else { "file" },
                         size: item.len(),
+                        inode: None,
+                        generation: None,
                     });
                 }
             }
@@ -371,6 +383,8 @@ impl Session {
                                 "other"
                             },
                             size: inode.size,
+                            inode: Some(entry.inode),
+                            generation: Some(inode.generation),
                         });
                     }
                 }
