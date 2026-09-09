@@ -4,4 +4,4 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 [dependencies]
-am-fs-ext4 = { git = "https://github.com/1vivy/rust-fs-ext4", rev = "5cc5c97a751107714e98bd40a0f420f32878a2de" }
+am-fs-ext4 = { git = "https://github.com/1vivy/rust-fs-ext4", rev = "8315da024dc352408fe9f005ee5618ac8c4ab29f" }

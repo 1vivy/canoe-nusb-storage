@@ -31,4 +31,4 @@ base64url digest to 32 bytes. Generic upstream code contains no CANOE commands.
 All consumers should carry this workspace's `patch.crates-io.nusb` pin if
 they integrate these crates into a larger Rust workspace.
 
-Direct managed writes remain disabled at the application release gate. The ext4 adapter also refuses recovery-marked/pending/aborted journals before writable mount; see [journal lifecycle](qualification/journal-lifecycle.md).
+Direct managed writes remain disabled at the application release gate. The ext4 adapter supports checked plain-JBD2 replay before file operations and explicit clean finish, while refusing checksummed/unsupported or aborted journals; see [journal lifecycle](qualification/journal-lifecycle.md).

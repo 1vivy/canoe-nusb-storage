@@ -5,7 +5,8 @@
     "coreSuite": "pass",
     "fatfsSuite": "pass",
     "fastbootSuite": "pass",
-    "storageSuite": "pass"
+    "storageSuite": "pass",
+    "ext4RuntimeAndGdtAndRecoveryTests": 856
   },
   "wasmCompilation": "pass",
   "linuxBrowserMemoryBroker": {
@@ -16,5 +17,17 @@
   "windowsUsbAndWinUsb": "unqualified",
   "macos": "unqualified",
   "phoneWrites": "not performed",
-  "directPersistRelease": "blocked pending journal and USB lifecycle qualification"
+  "directPersistRelease": "plain copied-image recovery qualified; physical USB, ownership and crash lifecycle remain unqualified",
+  "checkedPlainJournal": {
+    "format": "internal JBD2 v2; compat/ro=0; REVOKE and BIT64 only; first=1; nr_users=1",
+    "independentOracle": "e2fsck matches committed recovery and ignores uncommitted tail writes/revokes",
+    "interruptions": 18,
+    "interruptionModels": [
+      "immediate durability",
+      "volatile until flush"
+    ],
+    "copiedAndroidPersist": "128 MiB private copy: zero unexplained differences from Linux recovery; clean e2fsck; original unchanged",
+    "failedFinish": "zero further device I/O after a known failed journal operation"
+  },
+  "checksummedJournalWrites": "refused by checked adapter, including clean journals"
 }
