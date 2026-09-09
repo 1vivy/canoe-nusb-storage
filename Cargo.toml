@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["nusb-scsi", "nusb-fatfs", "nusb-ext4", "canoe-usb-web"]
+members = ["nusb-scsi", "nusb-fatfs", "nusb-ext4", "canoe-usb-web", "canoe-fs"]
 [workspace.package]
 version = "0.1.0"
 edition = "2021"

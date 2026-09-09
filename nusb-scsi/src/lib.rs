@@ -31,6 +31,7 @@ pub async fn close_web(
     }
     let released = if let Some(interface) = interface {
         match deadline(async { interface.release().await }).await {
+            Some(Err(_)) if !device.opened() => Ok(()),
             Some(result) => result.map_err(Error::from),
             None => Err(Error::Protocol("WebUSB interface release timed out")),
         }

@@ -9,6 +9,18 @@
     "ext4RuntimeAndGdtAndRecoveryTests": 856
   },
   "wasmCompilation": "pass",
+  "productionBrowserComposition": {
+    "managedUsbSynthetic": "9 Chromium/WASM cases through actual nusb and SCSI code; no physical USB",
+    "filesystemWorker": "14 Chromium/WASM cases including plain-JBD2 recovery, independent filesystem checks, actual nusb/BOT composition over a synthetic device, and pending-transfer teardown",
+    "nativeFilesystem": "4 tests including read-only enforcement, fresh readback, Unicode aliases, links and failed-write retirement",
+    "nativeScsiRange": "11 tests including range RMW, bounds and failed-write retirement",
+    "qualificationScripts": [
+      "qualification/managed-browser/run.ts",
+      "qualification/filesystem-browser/run.ts"
+    ],
+    "physicalBrowser": "unqualified",
+    "powerLossAtomicity": "not established by memory-broker cases"
+  },
   "linuxBrowserMemoryBroker": {
     "modernMetadataChecksums": "8 cases and native oracles pass",
     "gdtCsum": "8 cases and native oracles pass"
@@ -22,10 +34,7 @@
     "format": "internal JBD2 v2; compat/ro=0; REVOKE and BIT64 only; first=1; nr_users=1",
     "independentOracle": "e2fsck matches committed recovery and ignores uncommitted tail writes/revokes",
     "interruptions": 18,
-    "interruptionModels": [
-      "immediate durability",
-      "volatile until flush"
-    ],
+    "interruptionModels": ["immediate durability", "volatile until flush"],
     "copiedAndroidPersist": "128 MiB private copy: zero unexplained differences from Linux recovery; clean e2fsck; original unchanged",
     "failedFinish": "zero further device I/O after a known failed journal operation"
   },

@@ -7,15 +7,15 @@ export class FakeDevice {
     const fields={vendorId:0x1209,productId:0xca0f,opened:false,configuration,configurations:[configuration]};
     for(const [name,value]of Object.entries(fields)) Object.defineProperty(this,name,{value,writable:true});
     this.fault=fault;this.bytes=bytes??Uint8Array.from({length:8192},(_,n)=>n%251);
-    this.events=[];this.queue=[];this.armed=false;this.pending=null;this.closeCount=0;
+    this.events=[];this.queue=[];this.armed=false;this.pending=null;this.closeCount=0;this.pendingReads=new Set();
     this.deviceDescriptor=Uint8Array.from([18,1,0,2,0,0,0,64,9,0x12,0x0f,0xca,0,1,0,0,0,1]);
     this.configDescriptor=Uint8Array.from([9,2,32,0,1,1,0,0x80,50,9,4,0,0,2,255,6,80,0,7,5,0x81,2,0,2,0,7,5,0x02,2,0,2,0]);
   }
   async open(){this.events.push('open');this.opened=true;}
-  async close(){this.events.push('close');this.closeCount++;if(this.releasing)throw new DOMException('operation that changes interface state is in progress','InvalidStateError');if(this.fault==='close')throw new Error('injected close failure');this.opened=false;this.configuration.interfaces[0].claimed=false;this.armed=false;this.queue=[];this.pending=null;}
+  async close(){this.events.push('close');this.closeCount++;if(this.releasing)throw new DOMException('operation that changes interface state is in progress','InvalidStateError');if(this.fault==='close')throw new Error('injected close failure');this.opened=false;for(const reject of this.pendingReads)reject(new DOMException('device closed','AbortError'));this.pendingReads.clear();this.configuration.interfaces[0].claimed=false;this.armed=false;this.queue=[];this.pending=null;}
   async selectConfiguration(value){if(value!==1)throw new Error('bad configuration');this.events.push('configuration');}
   async claimInterface(value){if(value!==0)throw new Error('bad interface');this.configuration.interfaces[0].claimed=true;this.events.push('claim');}
-  async releaseInterface(value){if(value!==0)throw new Error('bad interface');this.releasing=true;this.events.push('release-start');await new Promise(resolve=>setTimeout(resolve,25));this.configuration.interfaces[0].claimed=false;this.releasing=false;this.events.push('release');}
+  async releaseInterface(value){if(!this.opened)throw new DOMException('device closed','InvalidStateError');if(value!==0)throw new Error('bad interface');this.releasing=true;this.events.push('release-start');await new Promise(resolve=>setTimeout(resolve,25));this.configuration.interfaces[0].claimed=false;this.releasing=false;this.events.push('release');}
   async controlTransferIn(setup,length){
     this.events.push(`control:${setup.request}:${setup.value}`);
     let bytes;
@@ -49,6 +49,7 @@ export class FakeDevice {
   }
   async transferIn(endpoint,length){
     if(endpoint!==1||length%512!==0)throw new Error('bad IN request');
+    if(this.fault==='read-timeout')return new Promise((_,reject)=>this.pendingReads.add(reject));
     let bytes=this.queue.shift();if(!bytes)throw new Error('missing data');
     if(this.fault==='short-read'&&bytes.length>=512)bytes=bytes.slice(0,bytes.length-1);
     return{status:'ok',data:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength)};
