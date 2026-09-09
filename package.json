@@ -1,0 +1,11 @@
+{
+  "name": "canoe-nusb-storage",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "qualify:browser": "bun qualification/browser/run.ts"
+  },
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
+}

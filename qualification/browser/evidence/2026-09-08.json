@@ -1,0 +1,244 @@
+{
+  "browser": "141.0.7390.37",
+  "build": {
+    "ext4": {
+      "url": "https://codeload.github.com/christhomas/rust-fs-ext4/tar.gz/3a95a96dd70a9d86ed0827ed2daa4bbf22b7a617",
+      "sha256": "8075e2bcc9d4274def7b98a69fb1fa0298ba69d2d3fa8659253dea367a38ce6a"
+    },
+    "core": {
+      "url": "https://static.crates.io/crates/am-fs-core/am-fs-core-0.2.10.crate",
+      "sha256": "df95dc5d599cb2980663dd567b8b7abf68f6866676763b7989880b08d1e8f0a4"
+    },
+    "native_clock": false,
+    "native_pid": false,
+    "wasm_sha256": "f455d9b7cf1cdd5325cfea21f6de22dba1f1878ba1a7d73ec88b748d6dbc9eaa",
+    "fixtures": {
+      "fat.img": "213d253f34d844d99a93e0168b1951680f8c2588e950789fc96919fdbc4893aa",
+      "ext4.img": "e72e8b0c85f03bfa798d9f08d58cd1a57827ac7e8058eade65fa19b3feab5eba",
+      "payload.bin": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938"
+    }
+  },
+  "capabilities": {
+    "isolated": true,
+    "secure": true,
+    "sharedArrayBuffer": true,
+    "webusb": true,
+    "filePicker": true,
+    "opfs": true,
+    "grantedDevices": 0
+  },
+  "cases": [
+    {
+      "filesystem": "fat",
+      "fault": null,
+      "kind": "done",
+      "ok": true,
+      "elapsedMs": 230.6550000011921,
+      "metrics": {
+        "read": 4530,
+        "write": 5336,
+        "flush": 5,
+        "readBytes": 2104860,
+        "writeBytes": 2105790,
+        "ticks": 11,
+        "maxTickGapMs": 20.080000013113022
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "ext4",
+      "fault": null,
+      "kind": "done",
+      "ok": true,
+      "elapsedMs": 435.419999986887,
+      "metrics": {
+        "read": 9,
+        "write": 16840,
+        "flush": 153,
+        "readBytes": 29760,
+        "writeBytes": 68976640,
+        "ticks": 21,
+        "maxTickGapMs": 20.05000001192093
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "fat",
+      "fault": "short-read",
+      "kind": "done",
+      "ok": false,
+      "error": "IO error: browser broker: JsValue(Error: broker read failed or returned a short transfer",
+      "poisoned": true,
+      "elapsedMs": 6.264999985694885,
+      "metrics": {
+        "read": 1,
+        "write": 0,
+        "flush": 0,
+        "readBytes": 0,
+        "writeBytes": 0,
+        "ticks": 0,
+        "maxTickGapMs": 0
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "fat",
+      "fault": "disconnect",
+      "kind": "done",
+      "ok": false,
+      "error": "IO error: browser broker: JsValue(Error: broker read failed or returned a short transfer",
+      "poisoned": true,
+      "elapsedMs": 5.620000004768372,
+      "metrics": {
+        "read": 1,
+        "write": 0,
+        "flush": 0,
+        "readBytes": 0,
+        "writeBytes": 0,
+        "ticks": 0,
+        "maxTickGapMs": 0
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "fat",
+      "fault": "flush",
+      "kind": "done",
+      "ok": false,
+      "error": "browser broker: JsValue(Error: broker flush failed or returned a short transfer",
+      "poisoned": true,
+      "elapsedMs": 165.1400000154972,
+      "metrics": {
+        "read": 2093,
+        "write": 5179,
+        "flush": 1,
+        "readBytes": 4670,
+        "writeBytes": 2105469,
+        "ticks": 8,
+        "maxTickGapMs": 20.060000002384186
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "fat",
+      "fault": "timeout",
+      "kind": "done",
+      "ok": false,
+      "error": "IO error: browser broker: JsValue(Error: broker timeout; session unusable",
+      "poisoned": true,
+      "elapsedMs": 5006.405000001192,
+      "metrics": {
+        "read": 1,
+        "write": 0,
+        "flush": 0,
+        "readBytes": 0,
+        "writeBytes": 0,
+        "ticks": 250,
+        "maxTickGapMs": 20.069999992847443
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "ext4",
+      "fault": "short-read",
+      "kind": "done",
+      "ok": false,
+      "error": "I/O error: browser broker: JsValue(Error: broker read failed or returned a short transfer",
+      "poisoned": true,
+      "elapsedMs": 8.71000000834465,
+      "metrics": {
+        "read": 1,
+        "write": 0,
+        "flush": 0,
+        "readBytes": 0,
+        "writeBytes": 0,
+        "ticks": 0,
+        "maxTickGapMs": 0
+      },
+      "matchedExpectation": true
+    },
+    {
+      "filesystem": "ext4",
+      "fault": "flush",
+      "kind": "done",
+      "ok": false,
+      "error": "I/O error: browser broker: JsValue(Error: broker flush failed or returned a short transfer",
+      "poisoned": true,
+      "elapsedMs": 8.625,
+      "metrics": {
+        "read": 8,
+        "write": 7,
+        "flush": 1,
+        "readBytes": 25664,
+        "writeBytes": 28672,
+        "ticks": 0,
+        "maxTickGapMs": 0
+      },
+      "matchedExpectation": true
+    }
+  ],
+  "errors": [],
+  "matchedExpectations": true,
+  "preservedStack": [
+    {
+      "repository": "/home/vivy/Projects/efisp-projects/canoe-boot-manager",
+      "commit": "ad8f988f7b7a5209c4f8cbaa163fcae61c54acad",
+      "checkpoint": "codex/preserved-b4-before-webapp-feasibility"
+    },
+    {
+      "repository": "/home/vivy/Projects/efisp-projects/gbl_root_canoe",
+      "commit": "8acc42eb9976f14437f42712305e9a8914616f53",
+      "checkpoint": "codex/preserved-b4-before-webapp-feasibility"
+    },
+    {
+      "repository": "/home/vivy/Projects/efisp-projects/canoe-msd",
+      "commit": "010553b70b7732c625ad75d22a75c3706a16ea47",
+      "checkpoint": "codex/preserved-b4-before-webapp-feasibility"
+    }
+  ],
+  "negativeBuilds": [
+    {
+      "case": "native-clock",
+      "matchedExpectations": true,
+      "writes": 0,
+      "panic": "panicked at /rustc/88d9e12ae178fab0fb5cc050a94da85685d449ea/library/std/src/sys/time/unsupported.rs:35:9:\ntime not implemented on this platform"
+    },
+    {
+      "case": "native-pid",
+      "matchedExpectations": true,
+      "writes": 0,
+      "panic": "panicked at /rustc/88d9e12ae178fab0fb5cc050a94da85685d449ea/library/std/src/sys/process/unsupported.rs:336:5:\nno pids on this platform"
+    }
+  ],
+  "independentChecks": [
+    {
+      "exit": 0,
+      "tool": "e2fsck -fn"
+    },
+    {
+      "exit": 0,
+      "tool": "fsck.fat -n"
+    },
+    {
+      "exit": 0,
+      "tool": "debugfs extraction"
+    },
+    {
+      "exit": 0,
+      "tool": "mcopy extraction"
+    },
+    {
+      "result": "extracted.fat",
+      "bytes": 33554432,
+      "sha256": "213d253f34d844d99a93e0168b1951680f8c2588e950789fc96919fdbc4893aa",
+      "matches": true
+    },
+    {
+      "result": "extracted.bin",
+      "bytes": 2097152,
+      "sha256": "91d3beb88a9b2f778a6c44a1c53b63d3c79931845a9aef84b3fb414610bd1938",
+      "matches": true
+    }
+  ],
+  "scope": "Real Chromium execution; simulated asynchronous block broker; no USB transfers or physical phone access."
+}

@@ -1,0 +1,7 @@
+[package]
+name = "nusb-fatfs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+[dependencies]
+fatfs = { git = "https://github.com/1vivy/rust-fatfs", rev = "d899ead0a014a6fa93ef8302e60d02c342e0b6d4", default-features = false, features = ["std", "alloc", "lfn", "unicode"] }

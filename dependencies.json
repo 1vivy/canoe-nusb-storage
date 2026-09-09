@@ -1,0 +1,32 @@
+{
+  "rust-fs-core": {
+    "fork": "https://github.com/1vivy/rust-fs-core",
+    "upstream": "https://github.com/antimatter-studios/rust-fs-core.git",
+    "upstreamRevision": "f392d68c98c3fea01a35883ecb2e522c3d9857ed",
+    "integrationRevision": "e6e891a0828fcd80d1c77f52b9ce1f447b8d1a1e"
+  },
+  "rust-fs-ext4": {
+    "fork": "https://github.com/1vivy/rust-fs-ext4",
+    "upstream": "https://github.com/christhomas/rust-fs-ext4.git",
+    "upstreamRevision": "3a95a96dd70a9d86ed0827ed2daa4bbf22b7a617",
+    "integrationRevision": "29241bc6767322a203999536096bacc14eb74c1a"
+  },
+  "fastboot-rs": {
+    "fork": "https://github.com/1vivy/fastboot-rs",
+    "upstream": "https://github.com/boardswarm/fastboot-rs.git",
+    "upstreamRevision": "ca768fd7591900172433164ee91bfc2ca11d6e23",
+    "integrationRevision": "ff063ae5449e2244d75287de8d852daf01912ad0"
+  },
+  "rust-fatfs": {
+    "fork": "https://github.com/1vivy/rust-fatfs",
+    "upstream": "https://github.com/rafalh/rust-fatfs.git",
+    "upstreamRevision": "2aefc2a027ce94ed0671752814dac203f0450e11",
+    "integrationRevision": "d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
+  },
+  "nusb": {
+    "fork": "https://github.com/1vivy/nusb",
+    "upstream": "https://github.com/kevinmehall/nusb.git",
+    "upstreamRevision": "bdc148c123c102785cd1d506b77bfeeb794ffeb1",
+    "integrationRevision": "bdc148c123c102785cd1d506b77bfeeb794ffeb1"
+  }
+}

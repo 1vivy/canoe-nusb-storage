@@ -1,0 +1,22 @@
+[package]
+name = "canoe-browser-probe"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+am-fs-ext4 = { path = "../deps/rust-fs-ext4" }
+fatfs = { git = "https://github.com/1vivy/rust-fatfs", rev = "d899ead0a014a6fa93ef8302e60d02c342e0b6d4", default-features = false, features = ["std", "alloc", "lfn", "unicode"] }
+wasm-bindgen = "=0.2.128"
+wasm-bindgen-futures = "0.4"
+nusb = "=0.2.7"
+fastboot-protocol = { git = "https://github.com/1vivy/fastboot-rs", rev = "ff063ae5449e2244d75287de8d852daf01912ad0", default-features = false }
+console_error_panic_hook = "0.1"
+
+[profile.release]
+opt-level = 2
+
+[workspace]

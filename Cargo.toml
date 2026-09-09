@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = ["nusb-scsi", "nusb-fatfs", "nusb-ext4", "canoe-usb-web"]
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+[workspace.dependencies]
+nusb = { git = "https://github.com/1vivy/nusb", rev = "bdc148c123c102785cd1d506b77bfeeb794ffeb1", default-features = false }
+thiserror = "2"
+
+
+[patch.crates-io]
+nusb = { git = "https://github.com/1vivy/nusb", rev = "bdc148c123c102785cd1d506b77bfeeb794ffeb1" }
