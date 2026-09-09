@@ -12,10 +12,10 @@ export class FakeDevice {
     this.configDescriptor=Uint8Array.from([9,2,32,0,1,1,0,0x80,50,9,4,0,0,2,255,6,80,0,7,5,0x81,2,0,2,0,7,5,0x02,2,0,2,0]);
   }
   async open(){this.events.push('open');this.opened=true;}
-  async close(){this.events.push('close');this.closeCount++;if(this.fault==='close')throw new Error('injected close failure');this.opened=false;this.configuration.interfaces[0].claimed=false;this.armed=false;this.queue=[];this.pending=null;}
+  async close(){this.events.push('close');this.closeCount++;if(this.releasing)throw new DOMException('operation that changes interface state is in progress','InvalidStateError');if(this.fault==='close')throw new Error('injected close failure');this.opened=false;this.configuration.interfaces[0].claimed=false;this.armed=false;this.queue=[];this.pending=null;}
   async selectConfiguration(value){if(value!==1)throw new Error('bad configuration');this.events.push('configuration');}
   async claimInterface(value){if(value!==0)throw new Error('bad interface');this.configuration.interfaces[0].claimed=true;this.events.push('claim');}
-  async releaseInterface(value){if(value!==0)throw new Error('bad interface');this.configuration.interfaces[0].claimed=false;this.events.push('release');}
+  async releaseInterface(value){if(value!==0)throw new Error('bad interface');this.releasing=true;this.events.push('release-start');await new Promise(resolve=>setTimeout(resolve,25));this.configuration.interfaces[0].claimed=false;this.releasing=false;this.events.push('release');}
   async controlTransferIn(setup,length){
     this.events.push(`control:${setup.request}:${setup.value}`);
     let bytes;
@@ -52,5 +52,16 @@ export class FakeDevice {
     let bytes=this.queue.shift();if(!bytes)throw new Error('missing data');
     if(this.fault==='short-read'&&bytes.length>=512)bytes=bytes.slice(0,bytes.length-1);
     return{status:'ok',data:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength)};
+  }
+}
+
+export class FakeFastboot extends FakeDevice {
+  constructor(){super();const selected=this.configuration.interfaces[0];selected.alternate.interfaceSubclass=66;selected.alternate.interfaceProtocol=3;this.configDescriptor[15]=66;this.configDescriptor[16]=3;}
+  async transferOut(endpoint,data){
+    if(endpoint!==2)throw new Error('wrong fastboot OUT endpoint');
+    const bytes=new Uint8Array(data.buffer??data,data.byteOffset??0,data.byteLength??data.length);
+    const command=new TextDecoder().decode(bytes);this.events.push(command);
+    this.queue.push(new TextEncoder().encode(command==='getvar:version'?'OKAY0.4':'FAILunknown variable'));
+    return{status:'ok',bytesWritten:bytes.length};
   }
 }

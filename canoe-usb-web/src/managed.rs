@@ -7,7 +7,6 @@ use nusb_scsi::{
 };
 use std::time::Duration;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 #[wasm_bindgen(inline_js = r#"
 export async function chooseManagedDevice() {
@@ -51,6 +50,7 @@ fn field(object: &Object, name: &str, value: impl Into<JsValue>) {
 #[wasm_bindgen]
 pub struct ManagedStorageSession {
     client: Option<RangeSession<NusbIo>>,
+    interface_owner: Option<nusb_scsi::ClaimedInterface>,
     device: web_sys::UsbDevice,
     interface: u8,
     alternate: u8,
@@ -76,6 +76,7 @@ pub async fn open_managed_storage(
     access: &str,
 ) -> Result<ManagedStorageSession, JsValue> {
     let access = access_mode(access)?;
+    let mut interface_owner = None;
     let opened = bounded(
         async {
             let selected = js_sys::Array::from(&managedInterface(&device).await?);
@@ -93,6 +94,7 @@ pub async fn open_managed_storage(
                 NusbIo::connect_web(device.clone(), interface, alternate, Duration::from_secs(5))
                     .await
                     .map_err(error)?;
+            interface_owner = Some(io.retain_web_interface());
             let max_lun = io.max_lun();
             let scsi = Scsi::new(io, 0).map_err(error)?;
             let client = RangeSession::connect(scsi, access).await.map_err(error)?;
@@ -104,6 +106,7 @@ pub async fn open_managed_storage(
     match opened {
         Some(Ok((client, interface, alternate, max_lun))) => Ok(ManagedStorageSession {
             client: Some(client),
+            interface_owner,
             device,
             interface,
             alternate,
@@ -111,9 +114,9 @@ pub async fn open_managed_storage(
             access,
         }),
         failed => {
-            JsFuture::from(device.close())
+            nusb_scsi::close_web(interface_owner, &device)
                 .await
-                .map_err(|_| error("USB close failed after managed initialization"))?;
+                .map_err(error)?;
             Err(match failed {
                 Some(Err(error)) => error,
                 _ => error("managed USB initialization timed out; reconnect"),
@@ -205,9 +208,9 @@ impl ManagedStorageSession {
         let mut client = self.take()?;
         let result = bounded(client.eject(), 30_000).await;
         drop(client);
-        JsFuture::from(self.device.close())
+        nusb_scsi::close_web(self.interface_owner.take(), &self.device)
             .await
-            .map_err(|_| error("managed USB close failed after eject"))?;
+            .map_err(error)?;
         match result {
             Some(result) => result.map_err(error),
             None => Err(error("managed eject timed out; reconnect")),
@@ -217,7 +220,9 @@ impl ManagedStorageSession {
     /// No automatic sync, filesystem replay, eject or retry occurs here.
     pub async fn close(&mut self) -> Result<(), JsValue> {
         drop(self.client.take());
-        JsFuture::from(self.device.close()).await.map(|_| ())
+        nusb_scsi::close_web(self.interface_owner.take(), &self.device)
+            .await
+            .map_err(error)
     }
 }
 
@@ -244,9 +249,9 @@ impl ManagedStorageSession {
             }
             failure => {
                 drop(client);
-                JsFuture::from(self.device.close())
+                nusb_scsi::close_web(self.interface_owner.take(), &self.device)
                     .await
-                    .map_err(|_| error("managed USB close failed after uncertain operation"))?;
+                    .map_err(error)?;
                 Err(match failure {
                     Some(Err(failure)) => error(failure),
                     _ => error("managed USB operation timed out; reconnect"),

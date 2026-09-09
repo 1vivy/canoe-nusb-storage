@@ -11,6 +11,40 @@ use nusb::{
 use std::{future::Future, time::Duration};
 
 pub mod range;
+pub type ClaimedInterface = nusb::Interface;
+
+/// Await interface release before closing WebUSB. nusb's fallback Drop starts
+/// releaseInterface without awaiting it; racing device.close against that
+/// interface state change fails in Chromium. The owner must drop all endpoint
+/// references first. Failed release/close never yields a successful receipt.
+#[cfg(target_arch = "wasm32")]
+pub async fn close_web(
+    interface: Option<ClaimedInterface>,
+    device: &web_sys::UsbDevice,
+) -> Result<(), Error> {
+    async fn deadline<T>(future: impl Future<Output = T>) -> Option<T> {
+        futures_lite::future::race(async { Some(future.await) }, async {
+            futures_timer::Delay::new(Duration::from_secs(5)).await;
+            None
+        })
+        .await
+    }
+    let released = if let Some(interface) = interface {
+        match deadline(async { interface.release().await }).await {
+            Some(result) => result.map_err(Error::from),
+            None => Err(Error::Protocol("WebUSB interface release timed out")),
+        }
+    } else {
+        Ok(())
+    };
+    let closed = match deadline(wasm_bindgen_futures::JsFuture::from(device.close())).await {
+        Some(Ok(_)) => Ok(()),
+        Some(Err(_)) => Err(Error::Protocol("WebUSB device close failed")),
+        None => Err(Error::Protocol("WebUSB device close timed out")),
+    };
+    closed?;
+    released
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -45,6 +79,8 @@ pub struct NusbIo {
     max_lun: u8,
     #[cfg(target_arch = "wasm32")]
     web_device: Option<web_sys::UsbDevice>,
+    #[cfg(target_arch = "wasm32")]
+    web_interface: Option<nusb::Interface>,
 }
 impl NusbIo {
     /// Open BOT only after GET_MAX_LUN has completed. Native nusb enforces the
@@ -73,6 +109,7 @@ impl NusbIo {
         timeout: Duration,
     ) -> Result<Self, Error> {
         validate_timeout(timeout)?;
+        let mut claimed = None;
         let opened = futures_lite::future::race(
             async {
                 let configuration = device
@@ -88,6 +125,7 @@ impl NusbIo {
                 }
                 let native = nusb::Device::from_js(device.clone()).await?;
                 let interface = native.claim_interface(interface_number).await?;
+                claimed = Some(interface.clone());
                 Self::initialize(interface, alternate, timeout).await
             },
             async {
@@ -99,16 +137,13 @@ impl NusbIo {
         match opened {
             Ok(mut io) => {
                 io.web_device = Some(device);
+                io.web_interface = claimed;
                 Ok(io)
             }
             Err(error) => {
                 // nusb's WebUSB control timeout is currently ignored. Merely
                 // dropping its Rust future does not cancel the JS transfer.
-                wasm_bindgen_futures::JsFuture::from(device.close())
-                    .await
-                    .map_err(|_| {
-                        Error::Protocol("USB close failed after initialization failure")
-                    })?;
+                close_web(claimed, &device).await?;
                 Err(error)
             }
         }
@@ -133,22 +168,22 @@ impl NusbIo {
         self.max_lun
     }
 
+    /// An outer protocol constructor retains this owner across fallible async
+    /// initialization. Drop its endpoints before passing this handle to close_web.
+    #[cfg(target_arch = "wasm32")]
+    pub fn retain_web_interface(&self) -> nusb::Interface {
+        self.web_interface
+            .as_ref()
+            .expect("connected WebUSB owner")
+            .clone()
+    }
+
     /// Cancel and drain pending transfers before releasing the owning interface.
     /// The caller must impose a deadline; a vanished device must not hang teardown.
+    #[cfg(not(target_arch = "wasm32"))]
     pub async fn close(mut self) -> Result<(), Error> {
-        #[cfg(target_arch = "wasm32")]
-        if let Some(device) = self.web_device.take() {
-            // WebUSB has no per-transfer cancellation. Closing the device
-            // aborts real pending promises before their completion is drained.
-            wasm_bindgen_futures::JsFuture::from(device.close())
-                .await
-                .map_err(|_| Error::Protocol("USB device close failed"))?;
-        }
-        #[cfg(not(target_arch = "wasm32"))]
-        {
-            self.input.cancel_all();
-            self.output.cancel_all();
-        }
+        self.input.cancel_all();
+        self.output.cancel_all();
         while self.input.pending() != 0 {
             let _ = self.input.next_complete().await;
         }
@@ -156,6 +191,17 @@ impl NusbIo {
             let _ = self.output.next_complete().await;
         }
         Ok(())
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub async fn close(mut self) -> Result<(), Error> {
+        drop(self.input);
+        drop(self.output);
+        let device = self
+            .web_device
+            .take()
+            .ok_or(Error::Protocol("missing WebUSB owner"))?;
+        close_web(self.web_interface.take(), &device).await
     }
 
     /// Require the selected alternate setting to be already active. Never
@@ -187,6 +233,8 @@ impl NusbIo {
             max_lun: 0,
             #[cfg(target_arch = "wasm32")]
             web_device: None,
+            #[cfg(target_arch = "wasm32")]
+            web_interface: None,
         })
     }
 }

@@ -40,8 +40,11 @@ firmware build and export target. Eject is expected to end the managed export.
 The shared browser constructor is `NusbIo::connect_web`: it owns the raw
 user-granted USBDevice, checks the active alternate setting, and applies an
 independent deadline because nusb's WebUSB control timeout is not implemented.
-On failure it awaits device.close() before returning. Its consuming close also
-awaits the actual device close and propagates rejection. An external caller
+On failure it drops endpoint owners, explicitly awaits interface release, then
+awaits device.close() before returning. Its consuming close uses the same
+ordering and propagates release or close rejection. Dropping an interface alone
+starts an unawaited release and races device close in Chromium. An external caller
 cancelling the constructor must close its USBDevice explicitly; dropping a
-Rust future cannot abort a WebUSB promise. This browser path is compile-checked;
-the native device probe does not qualify its runtime behavior.
+Rust future cannot abort a WebUSB promise. The managed-browser qualification runs this ordering against a delayed-release
+WebUSB fake in Chromium. The native device probe does not qualify physical
+browser behavior.

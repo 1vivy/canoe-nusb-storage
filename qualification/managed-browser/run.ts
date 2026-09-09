@@ -15,7 +15,7 @@ try{
   await page.goto(`http://127.0.0.1:${server.port}`);
   const report=await page.evaluate(async()=>{
     const wasm=await import('/pkg/canoe_usb_web.js');await wasm.default();
-    const{FakeDevice}=await import('/fake-device.js');
+    const{FakeDevice,FakeFastboot}=await import('/fake-device.js');
     const assert=(condition,message)=>{if(!condition)throw new Error(message);};
     const cases=[];
     const raw=new FakeDevice();const before=raw.bytes.slice();
@@ -45,6 +45,11 @@ try{
       assert(failed&&!session.usable()&&!device.opened,`${fault}: uncertain operation must retire and close`);
       cases.push({name:fault,ok:true});
     }
+    const fastbootDevice=new FakeFastboot(),fastboot=await wasm.openFastboot(fastbootDevice);
+    assert(await fastboot.getVar('version')==='0.4','fastboot response');
+    try{await fastboot.getVar('optional-unknown');}catch{}
+    assert(fastboot.usable(),'complete FAIL must preserve framing');
+    await fastboot.close();assert(!fastbootDevice.opened&&!fastbootDevice.releasing,'fastboot awaited release then close');cases.push({name:'fastboot-delayed-interface-release',ok:true});
     const device=new FakeDevice();const closeSession=await wasm.openManagedStorage(device,'read-only');device.fault='close';let failed=false;try{await closeSession.close();}catch{failed=true;}
     assert(failed&&!closeSession.usable(),'close rejection propagated');cases.push({name:'close-rejection',ok:true});
     return{cases,hardwareAccess:false};

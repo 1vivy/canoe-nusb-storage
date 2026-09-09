@@ -3,7 +3,6 @@
 use base64::Engine;
 use fastboot_protocol::nusb::{Device, NusbFastBoot};
 use wasm_bindgen::prelude::*;
-use wasm_bindgen_futures::JsFuture;
 
 mod managed;
 pub use managed::*;
@@ -38,6 +37,7 @@ fn error(e: impl std::fmt::Display) -> JsValue {
 #[wasm_bindgen]
 pub struct FastbootSession {
     client: Option<NusbFastBoot>,
+    interface: Option<nusb_scsi::ClaimedInterface>,
     device: web_sys::UsbDevice,
 }
 
@@ -54,24 +54,28 @@ pub async fn open_fastboot(device: web_sys::UsbDevice) -> Result<FastbootSession
     let native = match Device::from_js(device.clone()).await {
         Ok(d) => d,
         Err(e) => {
-            let _ = JsFuture::from(device.close()).await;
+            nusb_scsi::close_web(None, &device).await.map_err(error)?;
             return Err(error(e));
         }
     };
+    let mut claimed = None;
     let opened = async {
-        let interface = fastbootInterface(&device).await?;
-        NusbFastBoot::from_device(native, interface)
-            .await
-            .map_err(error)
+        let number = fastbootInterface(&device).await?;
+        let interface = native.claim_interface(number).await.map_err(error)?;
+        claimed = Some(interface.clone());
+        NusbFastBoot::from_interface(interface).map_err(error)
     }
     .await;
     match opened {
         Ok(client) => Ok(FastbootSession {
             client: Some(client),
+            interface: claimed,
             device,
         }),
         Err(e) => {
-            let _ = JsFuture::from(device.close()).await;
+            nusb_scsi::close_web(claimed, &device)
+                .await
+                .map_err(error)?;
             Err(e)
         }
     }
@@ -84,7 +88,9 @@ impl FastbootSession {
     }
     pub async fn close(&mut self) -> Result<(), JsValue> {
         drop(self.client.take());
-        JsFuture::from(self.device.close()).await.map(|_| ())
+        nusb_scsi::close_web(self.interface.take(), &self.device)
+            .await
+            .map_err(error)
     }
     #[wasm_bindgen(js_name = getVar)]
     pub async fn get_var(&mut self, name: &str) -> Result<String, JsValue> {
@@ -132,12 +138,16 @@ impl FastbootSession {
             }
             Some(Err(e)) => {
                 drop(c);
-                let _ = JsFuture::from(self.device.close()).await;
+                nusb_scsi::close_web(self.interface.take(), &self.device)
+                    .await
+                    .map_err(error)?;
                 Err(e)
             }
             None => {
                 drop(c);
-                let _ = JsFuture::from(self.device.close()).await;
+                nusb_scsi::close_web(self.interface.take(), &self.device)
+                    .await
+                    .map_err(error)?;
                 Err(error("USB operation timed out; reconnect"))
             }
         }
@@ -192,12 +202,16 @@ impl FastbootSession {
             }
             Some(Err(e)) => {
                 drop(client);
-                let _ = JsFuture::from(self.device.close()).await;
+                nusb_scsi::close_web(self.interface.take(), &self.device)
+                    .await
+                    .map_err(error)?;
                 Err(error(e))
             }
             None => {
                 drop(client);
-                let _ = JsFuture::from(self.device.close()).await;
+                nusb_scsi::close_web(self.interface.take(), &self.device)
+                    .await
+                    .map_err(error)?;
                 Err(error("USB operation timed out; reconnect"))
             }
         }
