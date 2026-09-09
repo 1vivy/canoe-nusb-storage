@@ -361,6 +361,28 @@ impl<T: BulkIo> Scsi<T> {
     pub async fn test_unit_ready(&mut self) -> Result<(), Error> {
         self.command(&[0; 6], 0, &[]).await.map(|_| ())
     }
+    /// Establish readiness for a *new* session. Some devices report normal
+    /// power-on/reset or medium-change UNIT ATTENTION on the first command.
+    /// Consume that fixed-format sense and retry TUR once, before geometry or
+    /// filesystem identity is observed. No reads/writes are retried here.
+    pub async fn initialize_ready(&mut self) -> Result<(), Error> {
+        match self.test_unit_ready().await {
+            Ok(()) => Ok(()),
+            Err(Error::CommandFailed) => {
+                let sense = self.request_sense().await?;
+                let reset_or_new_medium = sense.len() >= 14
+                    && sense[0] & 0x7f == 0x70
+                    && sense[7] >= 6
+                    && sense[2] & 0x0f == 6
+                    && matches!((sense[12], sense[13]), (0x28, 0) | (0x29, 0..=7));
+                if !reset_or_new_medium {
+                    return Err(Error::CommandFailed);
+                }
+                self.test_unit_ready().await
+            }
+            Err(error) => Err(error),
+        }
+    }
     pub async fn inquiry(&mut self) -> Result<Vec<u8>, Error> {
         self.command(&[0x12, 0, 0, 0, 36, 0], 36, &[]).await
     }
@@ -607,6 +629,85 @@ mod tests {
             assert!(d.is_usable());
         });
     }
+    #[test]
+    fn new_session_consumes_only_recognized_current_unit_attention() {
+        futures_lite::future::block_on(async {
+            for (response, key, asc, ascq, retry) in [
+                (0x70, 6, 0x29, 0, true),
+                (0x70, 6, 0x29, 7, true),
+                (0x70, 6, 0x28, 0, true),
+                (0x71, 6, 0x29, 0, false), // deferred error
+                (0x70, 2, 0x3a, 0, false), // absent medium
+                (0x70, 6, 0x2a, 1, false), // another parameter changed
+                (0x70, 6, 0x29, 8, false),
+            ] {
+                let mut sense = vec![0; 18];
+                sense[0] = response;
+                sense[2] = key;
+                sense[7] = 10;
+                sense[12] = asc;
+                sense[13] = ascq;
+                let mut reads = VecDeque::from([status(1, 0, 1), sense, status(2, 0, 0)]);
+                if retry {
+                    reads.push_back(status(3, 0, 0));
+                }
+                let mut device = Scsi::new(
+                    Fake {
+                        reads,
+                        short: false,
+                    },
+                    0,
+                )
+                .unwrap();
+                assert_eq!(device.initialize_ready().await.is_ok(), retry);
+                assert!(device.io.reads.is_empty());
+                assert!(device.is_usable());
+            }
+        });
+    }
+
+    #[test]
+    fn initialization_does_not_loop_or_retry_transport_uncertainty() {
+        futures_lite::future::block_on(async {
+            let mut sense = vec![0; 18];
+            sense[0] = 0x70;
+            sense[2] = 6;
+            sense[7] = 10;
+            sense[12] = 0x29;
+            let mut device = Scsi::new(
+                Fake {
+                    reads: VecDeque::from([
+                        status(1, 0, 1),
+                        sense,
+                        status(2, 0, 0),
+                        status(3, 0, 1),
+                    ]),
+                    short: false,
+                },
+                0,
+            )
+            .unwrap();
+            assert!(matches!(
+                device.initialize_ready().await,
+                Err(Error::CommandFailed)
+            ));
+            assert!(device.io.reads.is_empty());
+            let mut device = Scsi::new(
+                Fake {
+                    reads: VecDeque::new(),
+                    short: true,
+                },
+                0,
+            )
+            .unwrap();
+            assert!(matches!(
+                device.initialize_ready().await,
+                Err(Error::Protocol("short CBW"))
+            ));
+            assert!(!device.is_usable());
+        });
+    }
+
     #[test]
     fn rejects_invalid_ranges() {
         assert!(block_command(0x28, u32::MAX, 2, 512).is_err());

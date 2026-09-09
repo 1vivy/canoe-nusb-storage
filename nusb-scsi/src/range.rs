@@ -18,7 +18,7 @@ pub struct RangeSession<T> {
 
 impl<T: BulkIo> RangeSession<T> {
     pub async fn connect(mut scsi: Scsi<T>, access: Access) -> Result<Self, Error> {
-        scsi.test_unit_ready().await?;
+        scsi.initialize_ready().await?;
         let geometry = scsi.geometry().await?;
         // READ/WRITE(10) and bounded allocation are the deliberately supported
         // envelope. Larger-capacity transports need READ CAPACITY(16) first.
