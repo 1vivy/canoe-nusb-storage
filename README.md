@@ -16,8 +16,15 @@ writable access. Full-partition flashing is not a fallback in this workspace.
 
 `nusb-scsi` owns USB/BOT once. `nusb-fatfs` and `nusb-ext4` compose a synchronous
 block callback supplied by a filesystem worker; the separate async broker must
-remain unblocked. Browser qualification and independent Linux oracles live in
-`qualification/browser`; these memory-broker cases do not establish USB coverage.
+remain unblocked. Memory-broker qualification and independent Linux oracles live
+in `qualification/browser`. Actual Linux Chromium and Windows Edge USB/worker
+qualification is recorded in the separate
+[canoe-harnesses managed-WebUSB fixture](https://github.com/1vivy/canoe-harnesses/tree/ac45912dea4ade8eafdb856180e773bae1291121/qualification/managed-webusb).
+Those runs use the production WASM engines through the guest OS USB controller
+and WinUSB/Linux USB stack, with synthetic QEMU-backed disks. They cover FAT and
+ext4 mutations, read-only refusal, fresh readback, plain-JBD2 replay, sync/eject,
+read interruption, and fresh paired-device reconnect. They do not establish
+physical-phone browser-write or full application-deployment coverage.
 
 ## Browser fastboot facade
 
@@ -38,4 +45,13 @@ The [browser managed storage API](browser/README.md) exposes fixed-access
 sessions, bounded byte ranges, explicit sync/eject and awaited close over the
 same SCSI implementation used by the native probe.
 
-Direct managed writes remain disabled at the application release gate. The ext4 adapter supports checked plain-JBD2 replay before file operations and explicit clean finish, while refusing checksummed/unsupported or aborted journals; see [journal lifecycle](qualification/journal-lifecycle.md).
+CANOE BOOT MANAGER implements direct managed writes behind reviewed operations,
+an independently retained full persist backup, fresh target identity checks,
+and exclusive export ownership. The ext4 adapter supports checked plain-JBD2
+replay before file operations and explicit clean finish, while refusing
+checksummed/unsupported or aborted journals; see
+[journal lifecycle](qualification/journal-lifecycle.md). Writable mount/replay is
+itself a mutation and must follow the backup gate. Isolated Linux and Windows
+browser runs verified the complete raw image stays unchanged during read-only
+inspection before replay. Physical-phone browser writes and checksummed journal
+recovery remain separate acceptance limits.
