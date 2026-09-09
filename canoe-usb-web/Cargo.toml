@@ -6,6 +6,7 @@ license.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+nusb-scsi = { path = "../nusb-scsi" }
 fastboot-protocol = { git = "https://github.com/1vivy/fastboot-rs", rev = "ff063ae5449e2244d75287de8d852daf01912ad0", default-features = false }
 wasm-bindgen = "=0.2.128"
 wasm-bindgen-futures = "0.4"
@@ -13,3 +14,4 @@ web-sys = { version = "0.3", features = ["UsbDevice"] }
 js-sys = "0.3"
 base64 = "0.22"
 futures-lite = "2"
+futures-timer = { version = "3", features = ["wasm-bindgen"] }

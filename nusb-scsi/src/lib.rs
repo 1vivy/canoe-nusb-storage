@@ -10,6 +10,8 @@ use nusb::{
 };
 use std::{future::Future, time::Duration};
 
+pub mod range;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("USB transfer: {0}")]

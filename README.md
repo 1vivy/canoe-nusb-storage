@@ -34,4 +34,8 @@ base64url digest to 32 bytes. Generic upstream code contains no CANOE commands.
 All consumers should carry this workspace's `patch.crates-io.nusb` pin if
 they integrate these crates into a larger Rust workspace.
 
+The [browser managed storage API](browser/README.md) exposes fixed-access
+sessions, bounded byte ranges, explicit sync/eject and awaited close over the
+same SCSI implementation used by the native probe.
+
 Direct managed writes remain disabled at the application release gate. The ext4 adapter supports checked plain-JBD2 replay before file operations and explicit clean finish, while refusing checksummed/unsupported or aborted journals; see [journal lifecycle](qualification/journal-lifecycle.md).

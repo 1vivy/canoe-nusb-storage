@@ -5,6 +5,9 @@ use fastboot_protocol::nusb::{Device, NusbFastBoot};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
+mod managed;
+pub use managed::*;
+
 #[wasm_bindgen(inline_js = r#"
 export async function chooseFastbootDevice() {
   return navigator.usb.requestDevice({ filters: [{classCode: 255, subclassCode: 66, protocolCode: 3}] });
@@ -21,16 +24,12 @@ export async function fastbootInterface(device) {
   if (!found) throw new Error('Fastboot interface is missing');
   return found.interfaceNumber;
 }
-export async function commandDeadline(milliseconds) {
-  await new Promise(resolve => setTimeout(resolve, milliseconds));
-}
 "#)]
 extern "C" {
     #[wasm_bindgen(catch)]
     async fn chooseFastbootDevice() -> Result<JsValue, JsValue>;
     #[wasm_bindgen(catch)]
     async fn fastbootInterface(device: &web_sys::UsbDevice) -> Result<u8, JsValue>;
-    async fn commandDeadline(milliseconds: u32);
 }
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
@@ -207,7 +206,7 @@ impl FastbootSession {
 
 async fn bounded<T>(future: impl std::future::Future<Output = T>, milliseconds: u32) -> Option<T> {
     futures_lite::future::race(async { Some(future.await) }, async {
-        commandDeadline(milliseconds).await;
+        futures_timer::Delay::new(std::time::Duration::from_millis(u64::from(milliseconds))).await;
         None
     })
     .await
