@@ -37,6 +37,19 @@ pub struct NusbIo {
     input_packet_size: usize,
 }
 impl NusbIo {
+    /// Cancel and drain pending transfers before releasing the owning interface.
+    /// The caller must impose a deadline; a vanished device must not hang teardown.
+    pub async fn close(mut self) {
+        self.input.cancel_all();
+        self.output.cancel_all();
+        while self.input.pending() != 0 {
+            let _ = self.input.next_complete().await;
+        }
+        while self.output.pending() != 0 {
+            let _ = self.output.next_complete().await;
+        }
+    }
+
     /// Require the selected alternate setting to be already active. Never
     /// choose a different alternate setting or detach a kernel storage driver.
     pub fn from_interface(interface: nusb::Interface, alternate: u8) -> Result<Self, Error> {
@@ -105,6 +118,10 @@ impl<T: BulkIo> Scsi<T> {
     }
     pub fn is_usable(&self) -> bool {
         self.usable
+    }
+    /// Consume this session to cancel/drain and release its transport.
+    pub fn into_inner(self) -> T {
+        self.io
     }
 
     async fn command(
@@ -177,6 +194,15 @@ impl<T: BulkIo> Scsi<T> {
     }
     pub async fn test_unit_ready(&mut self) -> Result<(), Error> {
         self.command(&[0; 6], 0, &[]).await.map(|_| ())
+    }
+    pub async fn inquiry(&mut self) -> Result<Vec<u8>, Error> {
+        self.command(&[0x12, 0, 0, 0, 36, 0], 36, &[]).await
+    }
+    /// START STOP UNIT with LOEJ=1, START=0. A successful eject retires BOT.
+    pub async fn eject(&mut self) -> Result<(), Error> {
+        self.command(&[0x1b, 0, 0, 0, 2, 0], 0, &[]).await?;
+        self.usable = false;
+        Ok(())
     }
     pub async fn request_sense(&mut self) -> Result<Vec<u8>, Error> {
         self.command(&[3, 0, 0, 0, 18, 0], 18, &[]).await
@@ -338,5 +364,25 @@ mod tests {
     fn rejects_invalid_ranges() {
         assert!(block_command(0x28, u32::MAX, 2, 512).is_err());
         assert!(block_command(0x28, 0, 0, 512).is_err());
+    }
+
+    #[test]
+    fn successful_eject_retires_the_session() {
+        futures_lite::future::block_on(async {
+            let mut device = Scsi::new(
+                Fake {
+                    reads: VecDeque::from([status(1, 0, 0)]),
+                    short: false,
+                },
+                0,
+            )
+            .unwrap();
+            device.eject().await.unwrap();
+            assert!(!device.is_usable());
+            assert!(matches!(
+                device.test_unit_ready().await,
+                Err(Error::Retired)
+            ));
+        });
     }
 }
