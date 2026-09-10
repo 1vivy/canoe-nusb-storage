@@ -317,6 +317,10 @@ export async function openFilesystem({
     rename: (source, destination) => call("rename", [source, destination]),
     finish: () => call("finish", []),
     abort: () => {
+      // A failed operation already rejects its caller with the primary error
+      // and any close failure. Cleanup is idempotent: do not report that same
+      // rejection again as if abort had performed another failing operation.
+      if (shutdownPromise) return shutdownPromise.catch(() => {});
       const reason = new Error("filesystem aborted; reopen storage");
       return shutdown(reason, true).catch((error) => {
         if (error !== reason) throw error;

@@ -500,6 +500,9 @@ impl Session {
         if item.kind != "file" || length > item.size {
             return Err("truncate only shrinks existing regular files".into());
         }
+        if length == item.size {
+            return Ok(());
+        }
         let result = (|| match self.mounted()? {
             Mounted::Fat(fs) => {
                 let mut file = fs.root_dir().open_file(&value[1..]).map_err(error)?;

@@ -88,7 +88,7 @@ try {
       async writeRange(offset, bytes) {
         assert(this.mode === "read-write" && this.open, "invalid write");
         this.writes++;
-        if (this.fault === "write") throw new Error("injected write");
+        if (this.fault === "write" || this.fault === "write-and-close") throw new Error("injected write");
         this.bytes.set(bytes, Number(offset));
       }
       async sync() {
@@ -102,6 +102,7 @@ try {
         assert(!this.pendingReject, "close raced pending request");
         this.open = false;
         this.closed++;
+        if (this.fault === "write-and-close") throw new Error("injected close");
       }
     }
     const cases = [];
@@ -164,6 +165,27 @@ try {
         await rw.createFile("/managed/stage");
         const payload = Uint8Array.from({ length: 40000 }, (_, n) => n % 251);
         await rw.write("/managed/stage", 0n, payload);
+        const writesBeforeNoop = rwStorage.writes;
+        await rw.truncate("/managed/stage", BigInt(payload.length));
+        assert(rwStorage.writes === writesBeforeNoop, "equal-size truncate wrote storage");
+        if (kind === "ext4") {
+          // Interleaved allocations produce a dense multi-level extent tree,
+          // matching a large efisp.fat created on fragmented Android persist.
+          await rw.createFile("/fragmented");
+          await rw.createFile("/spacing");
+          for (let n = 0; n < 32; n++) {
+            await rw.write("/fragmented", BigInt(n * 4096), new Uint8Array(4096).fill(n));
+            await rw.write("/spacing", BigInt(n * 4096), new Uint8Array(4096).fill(0x5a));
+          }
+          const beforeNoop = rwStorage.writes;
+          await rw.truncate("/fragmented", 32n * 4096n);
+          assert(rwStorage.writes === beforeNoop, "fragmented equal-size truncate wrote storage");
+          await rw.truncate("/fragmented", 17n * 4096n + 19n);
+          assert((await rw.read("/fragmented", 17n * 4096n, 19)).every(n => n === 17), "deep shrink lost retained bytes");
+          await rw.remove("/fragmented");
+          assert((await rw.read("/spacing", 0n, 4096)).every(n => n === 0x5a), "deep removal changed unrelated bytes");
+          cases.push({ name: "fragmented-ext4-shrink-and-remove", ok: true });
+        }
         await rw.rename("/managed/stage", "/managed/result");
         await rw.createFile("/temporary");
         await rw.remove("/temporary");
@@ -216,12 +238,12 @@ try {
       await fetch("/results/recovered.img", { method: "PUT", body: pending });
       cases.push({ name: "plain-jbd2-committed-recovery", ok: true });
       for (const kind of ["fat", "ext4"])
-        for (const fault of ["short-read", "timeout", "write", "flush"]) {
+        for (const fault of ["short-read", "timeout", "write", "flush", "write-and-close"]) {
           const bytes = new Uint8Array(
               await (await fetch(`/fixtures/${kind}.img`)).arrayBuffer(),
             ),
             storage = new Memory(bytes);
-          let failed = false;
+          let failed = false, handle;
           try {
             if (fault === "short-read" || fault === "timeout") {
               storage.fault = fault;
@@ -238,15 +260,20 @@ try {
                 kind,
                 access: "read-write",
               });
+              handle = fs;
               await fs.createFile("/stage");
               storage.fault = fault;
-              if (fault === "write")
+              if (fault === "write" || fault === "write-and-close")
                 await fs.write("/stage", 0n, Uint8Array.of(9));
               else await fs.finish();
             }
-          } catch {
+          } catch (error) {
             failed = true;
+            if (fault === "write-and-close") assert(String(error).includes("injected close"), "lost cleanup error");
           }
+          // Releasing an already-retired filesystem must not repeat its
+          // original operation rejection as a second cleanup failure.
+          if (handle) await handle.abort();
           assert(
             failed && !storage.open && storage.closed > 0,
             `${kind}/${fault}: failed session did not close`,

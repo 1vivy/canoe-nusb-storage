@@ -102,6 +102,11 @@ fn both_filesystems_preserve_unrelated_files_and_reopen_verified() {
         assert!(fs.write("/managed/stage.bin", 1, b"gap").is_err());
         assert_eq!(fs.stat("/managed/stage.bin").unwrap().size, 0);
         fs.write("/managed/stage.bin", 0, &payload).unwrap();
+        let written = device.writes.load(Ordering::Relaxed);
+        fs.truncate("/managed/stage.bin", payload.len() as u64)
+            .unwrap();
+        assert_eq!(device.writes.load(Ordering::Relaxed), written);
+        assert!(fs.usable());
         fs.rename("/managed/stage.bin", "/managed/result.bin")
             .unwrap();
         assert!(fs.create_file("/managed/result.bin").is_err());
