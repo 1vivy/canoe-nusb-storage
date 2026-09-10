@@ -9,7 +9,7 @@
     "fork": "https://github.com/1vivy/rust-fs-ext4",
     "upstream": "https://github.com/christhomas/rust-fs-ext4.git",
     "upstreamRevision": "3a95a96dd70a9d86ed0827ed2daa4bbf22b7a617",
-    "integrationRevision": "8315da024dc352408fe9f005ee5618ac8c4ab29f"
+    "integrationRevision": "0cddfb24b247babcecee1400ab53de03fd2b0fd6"
   },
   "fastboot-rs": {
     "fork": "https://github.com/1vivy/fastboot-rs",
@@ -21,7 +21,7 @@
     "fork": "https://github.com/1vivy/rust-fatfs",
     "upstream": "https://github.com/rafalh/rust-fatfs.git",
     "upstreamRevision": "2aefc2a027ce94ed0671752814dac203f0450e11",
-    "integrationRevision": "d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
+    "integrationRevision": "a8cdf82d9b1a8b4125197c20d320d35df646f64d"
   },
   "nusb": {
     "fork": "https://github.com/1vivy/nusb",

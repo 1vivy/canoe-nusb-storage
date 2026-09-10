@@ -1,4 +1,5 @@
 // Production asynchronous broker. No filesystem or USB protocol is reimplemented.
+export const FILESYSTEM_API_VERSION = 2;
 const owners = new WeakSet();
 const consumed = new WeakSet();
 const MAX_CHUNK = 4 * 1024 * 1024;
@@ -25,7 +26,7 @@ function positive(value, name, maximum) {
 }
 
 /** Own one transport and one filesystem worker until finish/abort. The app must
- * retain and reopen its independent backup BEFORE choosing read-write here:
+ * confirm its independent backup BEFORE choosing read-write here:
  * an ext4 writable mount may replay its journal before the first file call. */
 export async function openFilesystem({
   storage,
@@ -118,7 +119,7 @@ export async function openFilesystem({
     Atomics.store(control, 0, -1);
     Atomics.notify(control, 0);
     worker.terminate();
-    consumed.add(storage);
+    if (closeStorage) consumed.add(storage);
     shutdownPromise = (async () => {
       let failure = reason;
       try {
@@ -220,6 +221,10 @@ export async function openFilesystem({
       return;
     }
     if (data.kind === "ready") {
+      if (data.apiVersion !== FILESYSTEM_API_VERSION) {
+        void fail(new Error("filesystem worker API is incompatible; reload the application"));
+        return;
+      }
       ready.resolve();
       return;
     }
@@ -255,7 +260,7 @@ export async function openFilesystem({
     operationTimeout,
   );
   worker.postMessage({
-    kind: "initialize",
+    kind: "initialize-v2",
     token,
     mailbox,
     capacity,
@@ -295,6 +300,7 @@ export async function openFilesystem({
     return result;
   }
   return Object.freeze({
+    apiVersion: FILESYSTEM_API_VERSION,
     access: () => access,
     usable: () => running && !finished,
     inspect: () => call("inspect", []),
@@ -315,6 +321,8 @@ export async function openFilesystem({
     mkdir: (path) => call("mkdir", [path]),
     remove: (path) => call("remove", [path]),
     rename: (source, destination) => call("rename", [source, destination]),
+    flush: () => call("flush", []),
+    freshRead: () => call("freshRead", []),
     finish: () => call("finish", []),
     abort: () => {
       // A failed operation already rejects its caller with the primary error

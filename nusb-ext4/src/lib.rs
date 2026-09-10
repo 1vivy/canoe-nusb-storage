@@ -51,9 +51,9 @@ pub fn inspect(device: std::sync::Arc<dyn BlockDevice>) -> fs_ext4::Result<Inspe
     })
 }
 
-/// Requires exclusive ownership and an independently retained/reopened backup.
+/// Requires exclusive ownership and a confirmed independent backup.
 /// This call itself can mutate persist through journal replay. Run the backup
-/// gate and raw-source identity check BEFORE calling it, not before the first
+/// decision and read-only filesystem preflight BEFORE calling it, not before the first
 /// file operation. Does not run fsck or fall back to whole-partition flashing.
 /// Call `finish` before releasing ownership; drop does not promise clean release.
 pub fn mount(device: std::sync::Arc<dyn BlockDevice>) -> fs_ext4::Result<fs_ext4::Filesystem> {

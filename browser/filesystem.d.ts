@@ -1,5 +1,6 @@
 export type Access = "read-only" | "read-write";
-/** One exclusive managed transport. A fresh object is required after finish. */
+/** One exclusive transport. Clean filesystem finish releases it for another mount.
+ * Abort or I/O failure consumes it; reopen transport after such failures. */
 export interface Storage {
   usable(): boolean;
   access(): Access;
@@ -46,7 +47,9 @@ export interface Inspection {
     roCompat: number;
   } | null;
 }
+export const FILESYSTEM_API_VERSION: 2;
 export interface FilesystemSession {
+  readonly apiVersion: 2;
   usable(): boolean;
   access(): Access;
   inspect(): Promise<Inspection>;
@@ -67,6 +70,8 @@ export interface FilesystemSession {
   mkdir(path: string): Promise<void>;
   remove(path: string): Promise<void>;
   rename(source: string, destination: string): Promise<void>;
+  flush(): Promise<void>;
+  freshRead(): Promise<void>;
   finish(): Promise<void>;
   abort(): Promise<void>;
 }

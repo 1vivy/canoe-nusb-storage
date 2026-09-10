@@ -72,10 +72,12 @@ const methods = new Set([
   "mkdir",
   "remove",
   "rename",
+  "flush",
+  "freshRead",
   "finish",
 ]);
 self.onmessage = async ({ data }) => {
-  if (data.kind === "initialize") {
+  if (data.kind === "initialize-v2") {
     token = data.token;
     capacity = data.capacity;
     ioTimeout = data.ioTimeout;
@@ -86,12 +88,14 @@ self.onmessage = async ({ data }) => {
         throw new Error("isolated worker with SharedArrayBuffer is required");
       const wasm = await import(data.moduleUrl);
       await wasm.default();
+      if (typeof wasm.filesystemApiVersion !== "function" || wasm.filesystemApiVersion() !== 2)
+        throw new Error("filesystem engine API is incompatible; reload the application");
       filesystem = wasm.openFilesystem(
         data.filesystem,
         data.access === "read-write",
         BigInt(capacity),
       );
-      postMessage({ kind: "ready", token });
+      postMessage({ kind: "ready", token, apiVersion: 2 });
     } catch (error) {
       poisoned = true;
       postMessage({ kind: "failed-open", token, error: String(error) });

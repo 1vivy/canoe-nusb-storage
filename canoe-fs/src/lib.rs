@@ -180,7 +180,7 @@ fn error(error: impl std::fmt::Display) -> String {
 
 impl Session {
     /// Calling this in RW mode can replay ext4 immediately. The owner must have
-    /// already saved/reopened the independent backup and checked raw identity.
+    /// already retained a backup or explicitly confirmed an existing backup.
     pub fn open(kind: &str, writable: bool, device: Arc<dyn BlockDevice>) -> Result<Self> {
         if writable && !device.is_writable() {
             return Err("underlying storage is read-only".into());
@@ -576,6 +576,28 @@ impl Session {
                     .map_err(error)
             }
             Mounted::Ext4(fs) => fs.apply_rename(source, destination, false).map_err(error),
+        };
+        self.mutation(result)
+    }
+    /// Publish pending bookkeeping without releasing this mounted filesystem.
+    pub fn flush(&mut self) -> Result<()> {
+        self.mounted()?;
+        let result = match self.mounted.as_mut().unwrap() {
+            // Read-only FAT stats can dirty FSInfo in memory; never publish it.
+            Mounted::Fat(fs) if self.device.writable => fs.flush().map_err(error),
+            Mounted::Fat(_) => self.device.flush().map_err(error),
+            Mounted::Ext4(fs) => fs.flush().map_err(error),
+        };
+        self.mutation(result)
+    }
+    /// Flush/checkpoint and invalidate clean read caches before actual readback.
+    /// File handles are scoped to each call; FAT has no separate block cache.
+    pub fn fresh_read(&mut self) -> Result<()> {
+        self.mounted()?;
+        let result = match self.mounted.as_mut().unwrap() {
+            Mounted::Fat(fs) if self.device.writable => fs.flush().map_err(error),
+            Mounted::Fat(_) => self.device.flush().map_err(error),
+            Mounted::Ext4(fs) => fs.fresh_read().map_err(error),
         };
         self.mutation(result)
     }

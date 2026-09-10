@@ -19,6 +19,8 @@ const server = Bun.serve({
         "<!doctype html><title>Filesystem worker qualification</title>",
         { headers: { ...headers, "Content-Type": "text/html" } },
       );
+    if (path === "/legacy-fs.js" && request.method === "GET")
+      return new Response('export default async function(){}; export function openFilesystem(){throw new Error("legacy mount was executed")}', {headers:{...headers,"Content-Type":"text/javascript"}});
     if (path === "/fake-device.js" && request.method === "GET")
       return new Response(
         Bun.file(`${root}/qualification/managed-browser/fake-device.js`),
@@ -41,7 +43,7 @@ const server = Bun.serve({
     if (
       request.method !== "GET" ||
       path.includes("..") ||
-      !/^\/(pkg\/[a-zA-Z0-9_./-]+|filesystem(?:-worker)?\.js|fixtures\/(fat|ext4|pending)\.img)$/.test(
+      !/^\/(pkg\/[a-zA-Z0-9_./-]+|filesystem(?:-worker)?\.js|fixtures\/(fat|ext4|pending|nested)\.img)$/.test(
         path,
       )
     )
@@ -64,6 +66,7 @@ try {
         this.mode = access;
         this.open = true;
         this.writes = 0;
+        this.readBytes = 0;
         this.closed = 0;
         this.fault = null;
         this.pendingReject = null;
@@ -78,6 +81,7 @@ try {
         return { bytes: this.bytes.length };
       }
       async readRange(offset, length) {
+        this.readBytes += length;
         if (this.fault === "timeout")
           return new Promise((_, reject) => {
             this.pendingReject = reject;
@@ -134,13 +138,15 @@ try {
           }
           assert(failed, "read-only mutation admitted");
         }
+        await fs.flush(); await fs.freshRead();
         await fs.finish();
         assert(
           storage.writes === 0 &&
             bytes.every((byte, n) => byte === original[n]),
           "read-only mount altered image",
         );
-        const rwStorage = new Memory(bytes),
+        assert(storage.usable() && storage.closed === 0, "clean finish consumed transport");
+        const rwStorage = storage,
           rw = await openFilesystem({
             storage: rwStorage,
             kind,
@@ -189,6 +195,27 @@ try {
         await rw.rename("/managed/stage", "/managed/result");
         await rw.createFile("/temporary");
         await rw.remove("/temporary");
+        await rw.flush(); await rw.freshRead();
+        assert(rw.usable() && rwStorage.closed === 0, "flush released the mount");
+        assert((await rw.read("/managed/result",0n,payload.length)).every((v,n)=>v===payload[n]), "live flush readback");
+        // Change only a physical data byte after it has been read into any
+        // driver cache. Explicit freshRead must observe it without remounting.
+        const changedOffsets=[];
+        for(let at=0;at+64<bytes.length;at++) {
+          if(bytes[at]===payload[0] && payload.subarray(0,64).every((v,n)=>bytes[at+n]===v)) {
+            changedOffsets.push(at); bytes[at]^=0xff; at+=63;
+          }
+        }
+        assert(changedOffsets.length>0,"physical fixture payload absent");
+        await rw.freshRead();
+        const changed=await rw.read("/managed/result",0n,payload.length);
+        assert(changed.some((v,n)=>v!==payload[n]),`${kind}: freshRead returned cached write bytes (${changedOffsets.length} physical payload locations)`);
+        for(const at of changedOffsets)bytes[at]^=0xff;
+        await rw.write("/managed/result",0n,payload);
+        await rw.freshRead();
+        assert((await rw.read("/managed/result",0n,payload.length)).every((v,n)=>v===payload[n]),"second live write readback");
+        assert(rwStorage.closed===0,"live validation closed transport");
+        cases.push({name:`${kind}-persistent-mount-and-physical-readback`,ok:true});
         await rw.finish();
         const fresh = await openFilesystem({
           storage: new Memory(bytes, "read-only"),
@@ -215,6 +242,32 @@ try {
         await fetch(`/results/${kind}.img`, { method: "PUT", body: bytes });
         cases.push({ name: `${kind}-operations-fresh-readback`, ok: true });
       }
+      {
+        const backing = new Memory(new Uint8Array(await(await fetch('/fixtures/nested.img')).arrayBuffer()));
+        const parent=await openFilesystem({storage:backing,kind:'ext4'});
+        const entry=await parent.stat('/efisp.fat');
+        const readsBefore=backing.readBytes;
+        const borrowed={
+          usable:()=>parent.usable(), access:()=> 'read-only', capacity:()=>({bytes:entry.size}),
+          readRange:(offset,length)=>parent.read('/efisp.fat',offset,length),
+          writeRange:async()=>{throw new Error('borrowed container is read-only')},
+          sync:()=>parent.flush(), close:async()=>{},
+        };
+        const child=await openFilesystem({storage:borrowed,kind:'fat'});
+        assert((await child.inspect()).kind==='fat','nested FAT inspection');
+        await child.list('/'); await child.freshRead(); await child.finish();
+        assert(parent.usable()&&backing.closed===0&&backing.writes===0,'nested read released or mutated persist');
+        assert(backing.readBytes-readsBefore<4*1024*1024,'nested inspection fetched whole FAT container');
+        assert((await parent.stat('/efisp.fat')).size===8*1024*1024,'parent remains usable');
+        await parent.finish();
+        cases.push({name:'range-backed-FAT-preflight-retains-parent-mount',ok:true,readBytes:backing.readBytes-readsBefore});
+      }
+      const obsoleteStorage=new Memory(new Uint8Array(await(await fetch('/fixtures/fat.img')).arrayBuffer()));
+      let incompatible='';
+      try { await openFilesystem({storage:obsoleteStorage,kind:'fat',access:'read-write',moduleUrl:new URL('/legacy-fs.js',location.href)}); }
+      catch(error){incompatible=String(error)}
+      assert(incompatible.includes('API is incompatible')&&!incompatible.includes('legacy mount was executed')&&obsoleteStorage.writes===0,'old engine mounted before capability rejection');
+      cases.push({name:'obsolete-engine-rejected-before-mount',ok:true});
       const pending = new Uint8Array(
         await (await fetch("/fixtures/pending.img")).arrayBuffer(),
       );

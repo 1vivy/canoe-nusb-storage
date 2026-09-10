@@ -11,11 +11,16 @@ bun qualification/filesystem-browser/run.ts
 
 The script serves only local synthetic fixtures and built artifacts with
 COOP/COEP, opens a fresh headless Chromium process, and uses no real USB device.
-Eleven cases cover both filesystem engines, explicit read-only rejection,
-exclusive ownership, named writes, unrelated-file preservation, fresh reopen,
-plain-JBD2 committed recovery and I/O failures/timeouts. Three further cases
-compose the actual nusb/BOT/range WASM module with the filesystem worker using
-a synthetic WebUSB target, including aborting a pending USB read before close.
+Twenty-one cases cover both filesystem engines, explicit read-only rejection,
+exclusive ownership, repeated named writes on the same mount, non-consuming
+flush, physical read-cache invalidation, and clean filesystem finish followed by
+another mount on the same transport. A nested FAT file is inspected through a
+live read-only ext4 mount using bounded range reads (8 KiB of physical reads in
+the current fixture), without capturing the container or closing its parent.
+Older engine APIs are rejected before a writable mount. Fault cases cover reads,
+writes, flush, close, cancellation and timeout. The actual nusb/BOT/range WASM
+module is also composed with the filesystem worker using a synthetic WebUSB
+target, including aborting a pending USB read before close.
 
 The pending journal fixture is independently encoded from Linux-created ext4
 metadata: committed transaction42 changes the oracle inode and superblock;

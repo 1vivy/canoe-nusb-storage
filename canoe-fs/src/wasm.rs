@@ -44,6 +44,11 @@ impl BlockDevice for BrokerDevice {
 pub struct BrowserFilesystem {
     session: Session,
 }
+/// Versioned before opening any mount: older workers must not partially execute.
+#[wasm_bindgen(js_name = filesystemApiVersion)]
+pub fn filesystem_api_version() -> u32 {
+    2
+}
 #[wasm_bindgen(js_name = openFilesystem)]
 pub fn open_filesystem(
     kind: &str,
@@ -103,6 +108,13 @@ impl BrowserFilesystem {
     }
     pub fn rename(&self, source: &str, destination: &str) -> Result<(), JsValue> {
         self.session.rename(source, destination).map_err(error)
+    }
+    pub fn flush(&mut self) -> Result<(), JsValue> {
+        self.session.flush().map_err(error)
+    }
+    #[wasm_bindgen(js_name = freshRead)]
+    pub fn fresh_read(&mut self) -> Result<(), JsValue> {
+        self.session.fresh_read().map_err(error)
     }
     pub fn finish(&mut self) -> Result<(), JsValue> {
         self.session.finish().map_err(error)

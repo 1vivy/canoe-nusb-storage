@@ -189,3 +189,28 @@ fn ext4_links_cannot_redirect_reads_or_unrelated_writes() {
     assert_eq!(fresh.read("/original", 0, 8).unwrap(), b"preserve");
     fresh.finish().unwrap();
 }
+
+#[test]
+fn live_sessions_flush_and_refresh_without_reopening() {
+    for kind in ["fat", "ext4"] {
+        let device = fixture(kind);
+        let mut ro = Session::open(kind, false, device.clone()).unwrap();
+        ro.inspect().unwrap();
+        ro.flush().unwrap();
+        ro.fresh_read().unwrap();
+        assert_eq!(device.writes.load(Ordering::Relaxed), 0);
+        ro.finish().unwrap();
+        let mut fs = Session::open(kind, true, device.clone()).unwrap();
+        fs.create_file("/live").unwrap();
+        for text in [b"first".as_slice(), b"later".as_slice()] {
+            fs.write("/live", 0, text).unwrap();
+            fs.flush().unwrap();
+            fs.fresh_read().unwrap();
+            assert!(fs.usable());
+            assert_eq!(fs.read("/live", 0, text.len()).unwrap(), text);
+        }
+        device.fail.store(true, Ordering::Relaxed);
+        assert!(fs.flush().is_err());
+        assert!(!fs.usable());
+    }
+}

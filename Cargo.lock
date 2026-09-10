@@ -10,7 +10,7 @@ source = "git+https://github.com/1vivy/rust-fs-core?rev=e6e891a#e6e891a0828fcd80
 [[package]]
 name = "am-fs-ext4"
 version = "0.5.1"
-source = "git+https://github.com/1vivy/rust-fs-ext4?rev=e79a013c3eb4fcb89015585c46ffbe2e4c0d9206#e79a013c3eb4fcb89015585c46ffbe2e4c0d9206"
+source = "git+https://github.com/1vivy/rust-fs-ext4?rev=0cddfb24b247babcecee1400ab53de03fd2b0fd6#0cddfb24b247babcecee1400ab53de03fd2b0fd6"
 dependencies = [
  "am-fs-core",
  "bitflags",
@@ -181,7 +181,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 [[package]]
 name = "fatfs"
 version = "0.4.0"
-source = "git+https://github.com/1vivy/rust-fatfs?rev=d899ead0a014a6fa93ef8302e60d02c342e0b6d4#d899ead0a014a6fa93ef8302e60d02c342e0b6d4"
+source = "git+https://github.com/1vivy/rust-fatfs?rev=a8cdf82d9b1a8b4125197c20d320d35df646f64d#a8cdf82d9b1a8b4125197c20d320d35df646f64d"
 dependencies = [
  "bitflags",
  "log",

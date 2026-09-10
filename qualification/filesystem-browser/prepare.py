@@ -33,4 +33,12 @@ for kind in ['fat','ext4','pending']:
     uncommitted=bytearray(inode);struct.pack_into('<H',uncommitted,inode_offset,0o100777)
     for n,data in enumerate([descriptor,inode,superblock,header(2,42),tail,uncommitted,bytearray(block)]):image[journal[n+1]*block:(journal[n+1]+1)*block]=data
     image[journal[0]*block:(journal[0]+1)*block]=jsb;path.write_bytes(image)
+# A FAT file read through the still-mounted ext4 filesystem. The child adapter
+# never owns or closes the parent transport.
+child=OUT/'nested-fat.img'
+with child.open('wb') as stream: stream.truncate(8*1024*1024)
+run('mkfs.fat','-F','16','-s','1',str(child))
+nested=OUT/'nested.img'
+nested.write_bytes((OUT/'ext4.img').read_bytes())
+run('debugfs','-w','-R',f'write {child} /efisp.fat',str(nested))
 print(OUT)
