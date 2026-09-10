@@ -8,6 +8,12 @@ mod managed;
 pub use managed::*;
 
 #[wasm_bindgen(inline_js = r#"
+export function attachCleanupError(primary, cleanup) {
+  const error = new Error(primary instanceof Error ? primary.message : String(primary), {cause: primary});
+  if (primary && typeof primary.name === "string") error.name = primary.name;
+  error.cleanupErrors = [cleanup];
+  return error;
+}
 export async function chooseFastbootDevice() {
   return navigator.usb.requestDevice({ filters: [{classCode: 255, subclassCode: 66, protocolCode: 3}] });
 }
@@ -25,6 +31,7 @@ export async function fastbootInterface(device) {
 }
 "#)]
 extern "C" {
+    fn attachCleanupError(primary: JsValue, cleanup: JsValue) -> JsValue;
     #[wasm_bindgen(catch)]
     async fn chooseFastbootDevice() -> Result<JsValue, JsValue>;
     #[wasm_bindgen(catch)]
@@ -32,6 +39,18 @@ extern "C" {
 }
 fn error(e: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&e.to_string())
+}
+
+/// Closing an uncertain connection must not replace the operation that failed.
+async fn close_after_failure(
+    primary: JsValue,
+    interface: Option<nusb_scsi::ClaimedInterface>,
+    device: &web_sys::UsbDevice,
+) -> JsValue {
+    match nusb_scsi::close_web(interface, device).await {
+        Ok(()) => primary,
+        Err(cleanup) => attachCleanupError(primary, error(cleanup)),
+    }
 }
 
 #[wasm_bindgen]
@@ -54,8 +73,7 @@ pub async fn open_fastboot(device: web_sys::UsbDevice) -> Result<FastbootSession
     let native = match Device::from_js(device.clone()).await {
         Ok(d) => d,
         Err(e) => {
-            nusb_scsi::close_web(None, &device).await.map_err(error)?;
-            return Err(error(e));
+            return Err(close_after_failure(error(e), None, &device).await);
         }
     };
     let mut claimed = None;
@@ -72,12 +90,7 @@ pub async fn open_fastboot(device: web_sys::UsbDevice) -> Result<FastbootSession
             interface: claimed,
             device,
         }),
-        Err(e) => {
-            nusb_scsi::close_web(claimed, &device)
-                .await
-                .map_err(error)?;
-            Err(e)
-        }
+        Err(e) => Err(close_after_failure(e, claimed, &device).await),
     }
 }
 
@@ -138,17 +151,16 @@ impl FastbootSession {
             }
             Some(Err(e)) => {
                 drop(c);
-                nusb_scsi::close_web(self.interface.take(), &self.device)
-                    .await
-                    .map_err(error)?;
-                Err(e)
+                Err(close_after_failure(e, self.interface.take(), &self.device).await)
             }
             None => {
                 drop(c);
-                nusb_scsi::close_web(self.interface.take(), &self.device)
-                    .await
-                    .map_err(error)?;
-                Err(error("USB operation timed out; reconnect"))
+                Err(close_after_failure(
+                    error("USB operation timed out; reconnect"),
+                    self.interface.take(),
+                    &self.device,
+                )
+                .await)
             }
         }
     }
@@ -202,17 +214,16 @@ impl FastbootSession {
             }
             Some(Err(e)) => {
                 drop(client);
-                nusb_scsi::close_web(self.interface.take(), &self.device)
-                    .await
-                    .map_err(error)?;
-                Err(error(e))
+                Err(close_after_failure(error(e), self.interface.take(), &self.device).await)
             }
             None => {
                 drop(client);
-                nusb_scsi::close_web(self.interface.take(), &self.device)
-                    .await
-                    .map_err(error)?;
-                Err(error("USB operation timed out; reconnect"))
+                Err(close_after_failure(
+                    error("USB operation timed out; reconnect"),
+                    self.interface.take(),
+                    &self.device,
+                )
+                .await)
             }
         }
     }

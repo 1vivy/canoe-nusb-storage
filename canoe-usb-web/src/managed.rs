@@ -1,5 +1,5 @@
 //! Browser managed storage uses the same SCSI engine as native qualification.
-use crate::{bounded, error};
+use crate::{bounded, close_after_failure, error};
 use js_sys::{Object, Reflect, Uint8Array};
 use nusb_scsi::{
     range::{Access, RangeSession, MAX_RANGE_BYTES},
@@ -114,13 +114,11 @@ pub async fn open_managed_storage(
             access,
         }),
         failed => {
-            nusb_scsi::close_web(interface_owner, &device)
-                .await
-                .map_err(error)?;
-            Err(match failed {
+            let primary = match failed {
                 Some(Err(error)) => error,
                 _ => error("managed USB initialization timed out; reconnect"),
-            })
+            };
+            Err(close_after_failure(primary, interface_owner, &device).await)
         }
     }
 }
@@ -208,12 +206,17 @@ impl ManagedStorageSession {
         let mut client = self.take()?;
         let result = bounded(client.eject(), 30_000).await;
         drop(client);
-        nusb_scsi::close_web(self.interface_owner.take(), &self.device)
-            .await
-            .map_err(error)?;
-        match result {
+        let result = match result {
             Some(result) => result.map_err(error),
             None => Err(error("managed eject timed out; reconnect")),
+        };
+        match result {
+            Ok(()) => nusb_scsi::close_web(self.interface_owner.take(), &self.device)
+                .await
+                .map_err(error),
+            Err(primary) => {
+                Err(close_after_failure(primary, self.interface_owner.take(), &self.device).await)
+            }
         }
     }
     /// Consuming connection boundary for later fresh read-only verification.
@@ -249,13 +252,11 @@ impl ManagedStorageSession {
             }
             failure => {
                 drop(client);
-                nusb_scsi::close_web(self.interface_owner.take(), &self.device)
-                    .await
-                    .map_err(error)?;
-                Err(match failure {
+                let primary = match failure {
                     Some(Err(failure)) => error(failure),
                     _ => error("managed USB operation timed out; reconnect"),
-                })
+                };
+                Err(close_after_failure(primary, self.interface_owner.take(), &self.device).await)
             }
         }
     }

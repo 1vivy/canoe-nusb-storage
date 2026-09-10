@@ -40,15 +40,25 @@ pub async fn close_web(
     };
     let closed = match deadline(wasm_bindgen_futures::JsFuture::from(device.close())).await {
         Some(Ok(_)) => Ok(()),
-        Some(Err(_)) => Err(Error::Protocol("WebUSB device close failed")),
+        Some(Err(value)) => Err(Error::Close(format!("{value:?}"))),
         None => Err(Error::Protocol("WebUSB device close timed out")),
     };
-    closed?;
-    released
+    match (released, closed) {
+        (Err(primary), Err(cleanup)) => Err(primary.with_cleanup(cleanup)),
+        (Err(error), _) | (_, Err(error)) => Err(error),
+        _ => Ok(()),
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("{primary}; cleanup failed: {cleanup}")]
+    Cleanup {
+        primary: Box<Error>,
+        cleanup: Box<Error>,
+    },
+    #[error("WebUSB device close failed: {0}")]
+    Close(String),
     #[error("USB transfer: {0}")]
     Usb(#[from] nusb::transfer::TransferError),
     #[error("USB interface: {0}")]
@@ -61,6 +71,16 @@ pub enum Error {
     Retired,
     #[error("USB initialization timed out; close the device before reconnecting")]
     InitializationTimeout,
+}
+
+impl Error {
+    #[cfg(any(target_arch = "wasm32", test))]
+    fn with_cleanup(self, cleanup: Error) -> Self {
+        Self::Cleanup {
+            primary: Box::new(self),
+            cleanup: Box::new(cleanup),
+        }
+    }
 }
 
 /// Implementations must return actual transferred bytes, never requested bytes.
@@ -144,8 +164,10 @@ impl NusbIo {
             Err(error) => {
                 // nusb's WebUSB control timeout is currently ignored. Merely
                 // dropping its Rust future does not cancel the JS transfer.
-                close_web(claimed, &device).await?;
-                Err(error)
+                Err(match close_web(claimed, &device).await {
+                    Ok(()) => error,
+                    Err(cleanup) => error.with_cleanup(cleanup),
+                })
             }
         }
     }
@@ -494,6 +516,20 @@ fn block_command(
 mod tests {
     use super::*;
     use std::collections::VecDeque;
+    #[test]
+    fn cleanup_retains_primary_failure_and_its_context() {
+        let error = Error::Protocol("claimInterface: Unable to claim interface")
+            .with_cleanup(Error::Close("device.close rejected".into()));
+        assert!(error
+            .to_string()
+            .starts_with("storage protocol: claimInterface: Unable to claim interface"));
+        assert!(error
+            .to_string()
+            .contains("cleanup failed: WebUSB device close failed: device.close rejected"));
+        assert!(
+            matches!(error, Error::Cleanup { primary, .. } if matches!(*primary, Error::Protocol(_)))
+        );
+    }
     #[test]
     fn get_max_lun_targets_the_selected_interface() {
         let request = get_max_lun_request(7);
