@@ -2,16 +2,30 @@ name: Storage contracts
 on:
   push:
     branches: [main]
-    paths: ['**/*.rs', '**/Cargo.toml', 'Cargo.lock', 'browser/**', 'qualification/**', '.github/workflows/ci.yml', 'package.json', 'bun.lock']
   pull_request:
-    paths: ['**/*.rs', '**/Cargo.toml', 'Cargo.lock', 'browser/**', 'qualification/**', '.github/workflows/ci.yml', 'package.json', 'bun.lock']
   workflow_dispatch:
 permissions:
   contents: read
 env:
   CARGO_BUILD_JOBS: 2
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      native: ${{ steps.scope.outputs.native }}
+      browser: ${{ steps.scope.outputs.browser }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: bash scripts/ci-scope.sh "$BASE" "$GITHUB_SHA" >> "$GITHUB_OUTPUT"
   native:
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -19,17 +33,39 @@ jobs:
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
         with:
           toolchain: 1.98.0
+      - name: Cache Cargo sources and tools
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          prefix-key: storage-v1-sources
+          cache-targets: false
       - run: sudo apt-get update && sudo apt-get install -y dosfstools e2fsprogs
       - run: cargo test --workspace --locked
   browser:
+    needs: changes
+    if: needs.changes.outputs.browser == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+      # Only generated WASM/glue is cached. Cargo target trees can contain sparse
+      # fixtures; archiving their holes materializes gigabytes on small runners.
+      - name: Reuse the locked production worker
+        id: worker
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: .work/browser-storage/pkg
+          key: storage-wasm-v1-${{ runner.os }}-rust1.98.0-bindgen0.2.128-${{ hashFiles('Cargo.lock', '**/Cargo.toml', '**/*.rs', '.cargo/**', 'rust-toolchain*', 'browser/build.sh') }}
+      - if: steps.worker.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
         with:
           toolchain: 1.98.0
           targets: wasm32-unknown-unknown
+      - name: Cache Cargo sources and tools
+        if: steps.worker.outputs.cache-hit != 'true'
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          prefix-key: storage-v1-sources
+          cache-targets: false
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.0
@@ -40,9 +76,15 @@ jobs:
           sudo apt-get install -y dosfstools e2fsprogs
           bun install --frozen-lockfile
           bunx --no-install playwright-core install --with-deps chromium
-          cargo install wasm-bindgen-cli --version 0.2.128 --locked
-      # Build the locked production worker once; all probes use these bytes.
-      - run: bash browser/build.sh
+      - name: Build the locked production worker once
+        if: steps.worker.outputs.cache-hit != 'true'
+        run: |
+          if [[ "$(wasm-bindgen --version 2>/dev/null || true)" != 'wasm-bindgen 0.2.128' ]]; then
+            cargo install wasm-bindgen-cli --version 0.2.128 --locked
+          fi
+          bash browser/build.sh
+      - name: Use current browser wrappers with the production worker
+        run: cp browser/filesystem.js browser/filesystem-worker.js browser/filesystem.d.ts .work/browser-storage/
       - run: python3 qualification/filesystem-browser/prepare.py
       - run: bun qualification/managed-browser/run.ts
       - run: bun qualification/usb-errors/run.ts .work/browser-storage/pkg
