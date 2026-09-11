@@ -33,11 +33,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
         with:
           toolchain: 1.98.0
-      - name: Cache Cargo sources and tools
+      - name: Cache Cargo compiler outputs and tools
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
-          prefix-key: storage-v1-sources
-          cache-targets: false
+          prefix-key: storage-v1
+          cache-workspace-crates: true
       - run: sudo apt-get update && sudo apt-get install -y dosfstools e2fsprogs
       - run: cargo test --workspace --locked
   browser:
@@ -47,8 +47,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      # Only generated WASM/glue is cached. Cargo target trees can contain sparse
-      # fixtures; archiving their holes materializes gigabytes on small runners.
+      # Reuse generated WASM/glue without rebuilding for browser-harness edits.
+      # Cargo caches below hold ordinary compiler outputs; test images live in
+      # temporary directories or .work and are not part of those caches.
       - name: Reuse the locked production worker
         id: worker
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -60,12 +61,12 @@ jobs:
         with:
           toolchain: 1.98.0
           targets: wasm32-unknown-unknown
-      - name: Cache Cargo sources and tools
+      - name: Cache Cargo compiler outputs and tools
         if: steps.worker.outputs.cache-hit != 'true'
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
-          prefix-key: storage-v1-sources
-          cache-targets: false
+          prefix-key: storage-v1
+          cache-workspace-crates: true
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.4.0
