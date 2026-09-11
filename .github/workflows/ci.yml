@@ -1,0 +1,60 @@
+name: Storage contracts
+on:
+  push:
+    branches: [main]
+    paths: ['**/*.rs', '**/Cargo.toml', 'Cargo.lock', 'browser/**', 'qualification/**', '.github/workflows/ci.yml', 'package.json', 'bun.lock']
+  pull_request:
+    paths: ['**/*.rs', '**/Cargo.toml', 'Cargo.lock', 'browser/**', 'qualification/**', '.github/workflows/ci.yml', 'package.json', 'bun.lock']
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  CARGO_BUILD_JOBS: 2
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: 1.98.0
+      - run: sudo apt-get update && sudo apt-get install -y dosfstools e2fsprogs
+      - run: cargo test --workspace --locked
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: 1.98.0
+          targets: wasm32-unknown-unknown
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.0
+      - name: Prepare browser and independent filesystem tools
+        run: |
+          sudo rm -f /etc/cron.daily/google-chrome /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+          sudo apt-get update
+          sudo apt-get install -y dosfstools e2fsprogs
+          bun install --frozen-lockfile
+          bunx --no-install playwright-core install --with-deps chromium
+          cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      # Build the locked production worker once; all probes use these bytes.
+      - run: bash browser/build.sh
+      - run: python3 qualification/filesystem-browser/prepare.py
+      - run: bun qualification/managed-browser/run.ts
+      - run: bun qualification/usb-errors/run.ts .work/browser-storage/pkg
+      - run: bun qualification/filesystem-browser/run.ts
+      - run: bun qualification/linux-oracle/run.ts .work/browser-storage
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: storage-qualification-evidence
+          path: |
+            .work/browser-storage/*.json
+            .work/browser-storage/results/*-oracle.log
+            .work/linux-oracle/**/*.json
+            .work/linux-oracle/**/*.log
+          if-no-files-found: ignore

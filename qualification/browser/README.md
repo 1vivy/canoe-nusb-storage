@@ -1,26 +1,21 @@
-# Maintained-fork browser qualification
+# Historical browser feasibility evidence
 
-This lab was extracted from canoe-boot-manager `7.0.0-b4-final`.
-`evidence/2026-09-08.json` records its historical disposable-patch result.
-`evidence/b5-maintained-forks.json` reruns the same eight cases against maintained
-public forks without editing their sources. Both native checkers and exact
-independent extraction pass. USB data transfers are not covered by this lab.
+The JSON files in `evidence/` record the original b5 feasibility experiments,
+including the early clock/PID and legacy group-descriptor checksum findings.
+They describe the sources and binaries tested at that time, not current release
+qualification.
 
-From the repository root:
+The experimental runner, copied fork sources and separate probe WASM crate have
+been retired. They built old filesystem revisions and duplicated the now-shipped
+worker interface. The maintained replacements are:
 
-```sh
-bun install
-python3 qualification/browser/prepare.py --wasm-bindgen /path/to/wasm-bindgen
-bun qualification/browser/run.ts
-python3 qualification/browser/verify.py
-```
+- [`qualification/filesystem-browser`](../filesystem-browser/README.md): current
+  production broker/WASM filesystem operations, fault handling, recovery and
+  independent FAT/ext4 checks.
+- [`qualification/linux-oracle`](../linux-oracle/README.md): the 1 KiB block / CRC16
+  group-descriptor allocation regression and independent payload extraction.
+- [`qualification/managed-browser`](../managed-browser/run.ts): actual nusb/BOT
+  composition with a synthetic USB target.
 
-Prerequisites: Rust wasm32-unknown-unknown, wasm-bindgen 0.2.128, Bun,
-Playwright Chromium, Linux mkfs.ext4/mkfs.fat/e2fsck/fsck.fat/debugfs/mcopy.
-The build downloads checksum-pinned fork archives, locks Cargo dependencies,
-and creates synthetic images under `.work/webapp-feasibility`.
-It never opens a phone, native raw device or private persist backup.
-
-The worker keeps WASM memory private and uses a JS SharedArrayBuffer mailbox
-with a separate asynchronous broker. Short I/O, disconnect, failed flush and
-timeout retire the fixture session. COOP/COEP headers are set by the local runner.
+The old runnable sources remain recoverable from Git at
+`7bc4aaf2f840d55addb59d8ec33d19ce8bffdbec`. No historical evidence was deleted.

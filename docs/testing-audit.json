@@ -1,0 +1,1122 @@
+{
+  "schemaVersion": 1,
+  "repository": "canoe-nusb-storage",
+  "baselineCommit": "7bc4aaf2f840d55addb59d8ec33d19ce8bffdbec",
+  "consumedRevision": "7bc4aaf2f840d55addb59d8ec33d19ce8bffdbec",
+  "upstreamComparison": null,
+  "counting": "Each declared test and explicit subcase is listed; Rustdoc snippets and manual qualification cases are identified separately. Target-gated tests remain listed even when they cannot run on this host. Data fixtures/support scripts and historical reports are not test cases.",
+  "entries": [
+    {
+      "source": {
+        "name": "both_filesystems_preserve_unrelated_files_and_reopen_verified",
+        "path": "canoe-fs/tests/session.rs",
+        "line": 86
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: both filesystems preserve unrelated files and reopen verified.",
+      "owner": "canoe-nusb-storage",
+      "layer": "filesystem integration / disposable images",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "failed_write_retires_before_drop_or_further_commands",
+        "path": "canoe-fs/tests/session.rs",
+        "line": 149
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: failed write retires before drop or further commands.",
+      "owner": "canoe-nusb-storage",
+      "layer": "filesystem integration / disposable images",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "fat_unicode_alias_cannot_bypass_exclusive_create",
+        "path": "canoe-fs/tests/session.rs",
+        "line": 165
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: fat unicode alias cannot bypass exclusive create.",
+      "owner": "canoe-nusb-storage",
+      "layer": "filesystem integration / disposable images",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "ext4_links_cannot_redirect_reads_or_unrelated_writes",
+        "path": "canoe-fs/tests/session.rs",
+        "line": 174
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: ext4 links cannot redirect reads or unrelated writes.",
+      "owner": "canoe-nusb-storage",
+      "layer": "filesystem integration / disposable images",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "live_sessions_flush_and_refresh_without_reopening",
+        "path": "canoe-fs/tests/session.rs",
+        "line": 193
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: live sessions flush and refresh without reopening.",
+      "owner": "canoe-nusb-storage",
+      "layer": "filesystem integration / disposable images",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "unsupported_journal_is_inspected_without_any_write",
+        "path": "nusb-ext4/src/lib.rs",
+        "line": 105
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: unsupported journal is inspected without any write.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "ordinary_recovery_is_supported_but_checksum_format_is_not",
+        "path": "nusb-ext4/src/lib.rs",
+        "line": 134
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: ordinary recovery is supported but checksum format is not.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "cleanup_retains_primary_failure_and_its_context",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 519
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: cleanup retains primary failure and its context.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "get_max_lun_targets_the_selected_interface",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 533
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: get max lun targets the selected interface.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "max_lun_requires_a_valid_reply_or_the_standard_single_lun_stall",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 548
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: max lun requires a valid reply or the standard single lun stall.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "selected_lun_cannot_exceed_the_connected_transport",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 567
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: selected lun cannot exceed the connected transport.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "validates_csw_and_flush",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 605
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: validates csw and flush.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "rejects_short_writes",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 638
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: rejects short writes.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "failed_scsi_command_remains_available_for_sense",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 653
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: failed scsi command remains available for sense.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "new_session_consumes_only_recognized_current_unit_attention",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 668
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: new session consumes only recognized current unit attention.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "initialization_does_not_loop_or_retry_transport_uncertainty",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 705
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: initialization does not loop or retry transport uncertainty.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "rejects_invalid_ranges",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 747
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: rejects invalid ranges.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "successful_eject_retires_the_session",
+        "path": "nusb-scsi/src/lib.rs",
+        "line": 753
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: successful eject retires the session.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "unaligned_write_preserves_other_bytes_and_fresh_reads_match",
+        "path": "nusb-scsi/src/range.rs",
+        "line": 188
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: unaligned write preserves other bytes and fresh reads match.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "invalid_and_read_only_ranges_issue_no_commands",
+        "path": "nusb-scsi/src/range.rs",
+        "line": 209
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: invalid and read only ranges issue no commands.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "uncertain_write_retires_without_retry_or_flush",
+        "path": "nusb-scsi/src/range.rs",
+        "line": 226
+      },
+      "kind": "test",
+      "decision": "keep",
+      "contract": "Storage composition, byte ranges and USB/filesystem ownership: uncertain write retires without retry or flush.",
+      "owner": "canoe-nusb-storage",
+      "layer": "library unit",
+      "replacement": null,
+      "reason": "The implementation-owning repository already owns this contract; retain its coverage without reproducing the driver matrix in CBM.",
+      "origin": "project-owned",
+      "configuration": "as declared by crate target/features"
+    },
+    {
+      "source": {
+        "name": "fragmented-ext4-shrink-and-remove",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 193
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Shrinking/removing a fragmented multi-level ext4 extent tree preserves retained and unrelated file bytes.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "range-backed-FAT-preflight-retains-parent-mount",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 263
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A child FAT reader borrows a live ext4 file without closing/mutating its parent or reading the whole container.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "obsolete-engine-rejected-before-mount",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 270
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Incompatible worker API is rejected before filesystem opening or mutation.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "plain-jbd2-committed-recovery",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 292
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Read-only inspection does not replay; writable recovery replays committed plain-JBD2 transactions and passes independent Linux checks.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "nusb-pending-read-timeout-drains-before-close",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 394
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A pending WebUSB read is drained before closing the borrowed WASM USB device.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "fat-persistent-mount-and-physical-readback",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 218
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Flush/freshRead preserve mounted ownership and observe physical bytes after explicit cache invalidation.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat"
+    },
+    {
+      "source": {
+        "name": "fat-operations-fresh-readback",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 243
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Filesystem operations preserve unrelated files, persist output and pass the independent native filesystem checker.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat"
+    },
+    {
+      "source": {
+        "name": "fat-nusb-scsi-worker-composition",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 364
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Production nusb/BOT/range and filesystem-worker composition writes and reads back the expected file bytes.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat"
+    },
+    {
+      "source": {
+        "name": "fat-short-read",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat/short-read"
+    },
+    {
+      "source": {
+        "name": "fat-timeout",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat/timeout"
+    },
+    {
+      "source": {
+        "name": "fat-write",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat/write"
+    },
+    {
+      "source": {
+        "name": "fat-flush",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat/flush"
+    },
+    {
+      "source": {
+        "name": "fat-write-and-close",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fat/write-and-close"
+    },
+    {
+      "source": {
+        "name": "ext4-persistent-mount-and-physical-readback",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 218
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Flush/freshRead preserve mounted ownership and observe physical bytes after explicit cache invalidation.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4"
+    },
+    {
+      "source": {
+        "name": "ext4-operations-fresh-readback",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 243
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Filesystem operations preserve unrelated files, persist output and pass the independent native filesystem checker.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4"
+    },
+    {
+      "source": {
+        "name": "ext4-nusb-scsi-worker-composition",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 364
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Production nusb/BOT/range and filesystem-worker composition writes and reads back the expected file bytes.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4"
+    },
+    {
+      "source": {
+        "name": "ext4-short-read",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4/short-read"
+    },
+    {
+      "source": {
+        "name": "ext4-timeout",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4/timeout"
+    },
+    {
+      "source": {
+        "name": "ext4-write",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4/write"
+    },
+    {
+      "source": {
+        "name": "ext4-flush",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4/flush"
+    },
+    {
+      "source": {
+        "name": "ext4-write-and-close",
+        "path": "qualification/filesystem-browser/run.ts",
+        "line": 294
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "A failed broker/worker operation retires the session and closes transport, preserving cleanup errors.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "ext4/write-and-close"
+    },
+    {
+      "source": {
+        "name": "unaligned-write-fresh-read-only-eject",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 34
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Unaligned writes preserve neighboring bytes; read-only refusal precedes I/O and successful eject retires ownership.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "fastboot-delayed-interface-release",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 52
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Complete Fastboot FAIL retains framing; delayed interface release completes before close.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "close-rejection",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 54
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Transport-close failure is reported and the session remains retired.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "explicit qualification command"
+    },
+    {
+      "source": {
+        "name": "bad-lun",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 35
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "bad-lun"
+    },
+    {
+      "source": {
+        "name": "init-timeout",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 35
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "init-timeout"
+    },
+    {
+      "source": {
+        "name": "short-out",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 35
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "short-out"
+    },
+    {
+      "source": {
+        "name": "short-read",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 42
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "short-read"
+    },
+    {
+      "source": {
+        "name": "disconnect-write",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 42
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "disconnect-write"
+    },
+    {
+      "source": {
+        "name": "flush",
+        "path": "qualification/managed-browser/run.ts",
+        "line": 42
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "USB initialization or uncertain transfer failure closes and retires the selected session without automatic replay.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "flush"
+    },
+    {
+      "source": {
+        "name": "fastboot/close-fails=False",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fastboot, close failure=False"
+    },
+    {
+      "source": {
+        "name": "fastboot/close-fails=True",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "fastboot, close failure=True"
+    },
+    {
+      "source": {
+        "name": "managed/close-fails=False",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "managed, close failure=False"
+    },
+    {
+      "source": {
+        "name": "managed/close-fails=True",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "managed, close failure=True"
+    },
+    {
+      "source": {
+        "name": "managed-native/close-fails=False",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "managed-native, close failure=False"
+    },
+    {
+      "source": {
+        "name": "managed-native/close-fails=True",
+        "path": "qualification/usb-errors/run.ts",
+        "line": 24
+      },
+      "kind": "qualification case",
+      "decision": "keep",
+      "contract": "Preserve browser NetworkError details through the WASM facade and retain a secondary close failure.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": null,
+      "reason": "Runs the owning transport/worker composition; CBM should retain only its adapter and review contracts, not duplicate these filesystem/USB cases.",
+      "configuration": "managed-native, close failure=True"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/fat/success",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "fat/None"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/ext4/success",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "ext4/None"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/fat/short-read",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "fat/short-read"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/fat/disconnect",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "fat/disconnect"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/fat/flush",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "fat/flush"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/fat/timeout",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "fat/timeout"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/ext4/short-read",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "ext4/short-read"
+    },
+    {
+      "source": {
+        "name": "legacy-probe/ext4/flush",
+        "path": "qualification/browser/run.ts",
+        "line": 45
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical asynchronous browser feasibility with FAT/ext4 callback I/O.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "qualification/filesystem-browser/run.ts",
+      "reason": "The old standalone probe builds stale fork revisions and a separate experimental WASM facade. Production worker cases now cover the behavior; retain historical evidence JSON rather than maintaining both runners.",
+      "configuration": "ext4/flush"
+    },
+    {
+      "source": {
+        "name": "native-clock",
+        "path": "qualification/browser/run.ts",
+        "line": 44
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical demonstration that native clock/PID APIs cannot run in a WASM browser.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "rust-fs-ext4/tests/runtime_provider.rs and production filesystem-browser qualification",
+      "reason": "The maintained filesystem already accepts a caller runtime and production WASM builds exercise it; the negative experimental build is obsolete.",
+      "configuration": "historical negative build"
+    },
+    {
+      "source": {
+        "name": "native-pid",
+        "path": "qualification/browser/run.ts",
+        "line": 44
+      },
+      "kind": "qualification case",
+      "decision": "delete",
+      "contract": "Historical demonstration that native clock/PID APIs cannot run in a WASM browser.",
+      "owner": "canoe-nusb-storage",
+      "layer": "browser/worker integration",
+      "origin": "project-owned",
+      "replacement": "rust-fs-ext4/tests/runtime_provider.rs and production filesystem-browser qualification",
+      "reason": "The maintained filesystem already accepts a caller runtime and production WASM builds exercise it; the negative experimental build is obsolete.",
+      "configuration": "historical negative build"
+    },
+    {
+      "source": {
+        "name": "1 KiB legacy-GDT allocation and Linux payload oracle",
+        "repository": "canoe-boot-manager",
+        "path": "e2e/qualify-ext4-worker.ts",
+        "line": 1,
+        "commit": "a50e6396ea8b7ceead41df7d75fffcd9c6fd456a"
+      },
+      "kind": "moved qualification case",
+      "decision": "move",
+      "contract": "Large file allocation on 1 KiB ext4 with uninitialized groups preserves reserved GDT metadata and unrelated file contents; e2fsck and independent extraction validate the result.",
+      "owner": "canoe-nusb-storage",
+      "layer": "production WASM / Linux filesystem oracle",
+      "origin": "moved from consumer",
+      "replacement": "qualification/linux-oracle/run.ts",
+      "reason": "The driver composition owns filesystem correctness. CBM keeps only its small app-adapter contract in the existing hosting probe.",
+      "configuration": "explicit engine directory; disposable 128 MiB disk; no USB"
+    }
+  ],
+  "supportNotTestCases": [
+    "qualification/browser/evidence/*.json: retained historical evidence",
+    "qualification/filesystem-browser/prepare.py: shared synthetic fixture generation",
+    "qualification/managed-browser/fake-device.js: shared synthetic WebUSB target",
+    "browser/build.sh: one production engine build shared by all maintained probes"
+  ],
+  "totals": {
+    "test": 21,
+    "qualification case": 46,
+    "moved qualification case": 1
+  },
+  "decisions": {
+    "keep": 57,
+    "delete": 10,
+    "move": 1
+  },
+  "validation": {
+    "native": "cargo test --workspace --locked: 21 passed, 0 failed",
+    "productionBrowser": "9 managed USB cases, 6 facade error cases, 21 filesystem-worker cases; all passed; no physical USB",
+    "linuxOracle": "e2fsck exit0; exact32MiB extraction and unrelated file preserved at1KiB blocksize; both previously shipped and owner-built workers tested",
+    "notRun": "No physical devices or guest OS USB qualification; unchanged inherited dependency suites inventoried, not rerun."
+  }
+}

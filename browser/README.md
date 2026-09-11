@@ -80,9 +80,10 @@ staging/publication steps in the application instead of assuming atomic
 replacement. No stage or old directory is implicitly adopted or migrated.
 
 The broker allows one filesystem owner per storage session and serializes file
-operations. Finish consumes that ownership; the same storage object cannot
-be mounted again. Close it and create a fresh managed session for verification.
-Finish leaves USB open for the owner's explicit sync/close/eject sequence.
+operations. `flush()` and `freshRead()` preserve the mounted owner. `finish()`
+releases that filesystem owner and leaves the caller's transport available; it
+can be reused by a later mount or explicitly synchronized/closed/ejected by its
+owner. A failed session is retired rather than reused.
 Abort terminates the worker. If I/O is pending, the broker uses its retained
 USB grant to abort the request, awaits settlement, then awaits session close; it does not clear a
 journal's recovery marker or claim clean release.
@@ -109,6 +110,7 @@ Validation commands:
 python3 qualification/filesystem-browser/prepare.py
 bash browser/build.sh
 bun qualification/filesystem-browser/run.ts
+bun qualification/linux-oracle/run.ts .work/browser-storage
 ```
 
 Fixtures and resulting images stay under `.work/browser-storage/`. The tests

@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "qualify:browser": "bun qualification/browser/run.ts"
+    "qualify:browser": "bun qualification/filesystem-browser/run.ts",
+    "qualify:linux": "bun qualification/linux-oracle/run.ts"
   },
   "devDependencies": {
     "playwright-core": "1.56.1"

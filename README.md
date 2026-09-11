@@ -16,8 +16,10 @@ writable access. Full-partition flashing is not a fallback in this workspace.
 
 `nusb-scsi` owns USB/BOT once. `nusb-fatfs` and `nusb-ext4` compose a synchronous
 block callback supplied by a filesystem worker; the separate async broker must
-remain unblocked. Memory-broker qualification and independent Linux oracles live
-in `qualification/browser`. Actual Linux Chromium and Windows Edge USB/worker
+remain unblocked. Production-worker qualification and independent Linux oracles live
+in `qualification/filesystem-browser` and `qualification/linux-oracle`. The
+earlier experimental probe in `qualification/browser` is retained as historical
+evidence only. Actual Linux Chromium and Windows Edge USB/worker
 qualification is recorded in the separate
 [canoe-harnesses managed-WebUSB fixture](https://github.com/1vivy/canoe-harnesses/tree/ac45912dea4ade8eafdb856180e773bae1291121/qualification/managed-webusb).
 Those runs use the production WASM engines through the guest OS USB controller
