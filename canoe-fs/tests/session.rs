@@ -214,3 +214,46 @@ fn live_sessions_flush_and_refresh_without_reopening() {
         assert!(!fs.usable());
     }
 }
+
+/// Android labels new persist files from their parent; the loop worker on
+/// pre-6.12.25 kernels cannot read an unlabeled container.
+#[test]
+fn ext4_creates_inherit_the_parent_selinux_label() {
+    const LABEL: &str = "u:object_r:mnt_vendor_file:s0";
+    let image = std::env::temp_dir().join(format!("canoe-fs-label-{}.img", std::process::id()));
+    let debugfs = |image: &std::path::Path, request: &str, write: bool| {
+        let mut command = Command::new("debugfs");
+        if write {
+            command.arg("-w");
+        }
+        let output = command.args(["-R", request]).arg(image).output().unwrap();
+        assert!(output.status.success());
+        String::from_utf8_lossy(&output.stdout).into_owned()
+    };
+    for labeled in [true, false] {
+        let device = fixture("ext4");
+        std::fs::write(&image, &*device.bytes.lock().unwrap()).unwrap();
+        if labeled {
+            // The kernel stores the context NUL-terminated.
+            debugfs(&image, &format!("ea_set / security.selinux {LABEL}\\000"), true);
+        }
+        *device.bytes.lock().unwrap() = std::fs::read(&image).unwrap();
+        let mut fs = Session::open("ext4", true, device.clone()).unwrap();
+        fs.create_file("/efisp.fat").unwrap();
+        fs.write("/efisp.fat", 0, b"container").unwrap();
+        fs.mkdir("/staging").unwrap();
+        fs.finish().unwrap();
+        std::fs::write(&image, &*device.bytes.lock().unwrap()).unwrap();
+        for created in ["/efisp.fat", "/staging"] {
+            let value = debugfs(&image, &format!("ea_get -V {created} security.selinux"), false);
+            if labeled {
+                assert_eq!(value.trim_end_matches(['\n', '\0']), LABEL, "{created}");
+            } else {
+                assert!(!value.contains("u:object_r"), "{created}: {value}");
+            }
+        }
+        let check = Command::new("e2fsck").args(["-fn"]).arg(&image).output().unwrap();
+        assert!(check.status.success(), "{}", String::from_utf8_lossy(&check.stdout));
+    }
+    std::fs::remove_file(image).unwrap();
+}

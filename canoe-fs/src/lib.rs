@@ -177,6 +177,22 @@ fn ext_inode(
 fn error(error: impl std::fmt::Display) -> String {
     error.to_string()
 }
+const SELINUX_LABEL: &str = "security.selinux";
+/// Android's kernel labels a new inode with its parent directory's type when no
+/// transition applies; an offline writer must do the same. An unlabeled file on
+/// persist is unreadable by the kernel's loop worker on 6.12 kernels before
+/// 6.12.25, where loop I/O is SELinux-checked.
+fn inherit_label(fs: &ext4::Filesystem, value: &str) -> ext4::Result<()> {
+    let parent = match value.rsplit_once('/') {
+        Some(("", _)) | None => "/",
+        Some((parent, _)) => parent,
+    };
+    let (_, inode, raw) = ext_inode(fs, parent)?;
+    match ext4::xattr::get_resolved(fs, &inode, &raw, SELINUX_LABEL)? {
+        Some(label) => fs.apply_setxattr(value, SELINUX_LABEL, &label),
+        None => Ok(()),
+    }
+}
 
 impl Session {
     /// Calling this in RW mode can replay ext4 immediately. The owner must have
@@ -451,7 +467,10 @@ impl Session {
                 .create_file(&value[1..])
                 .map(|_| ())
                 .map_err(error),
-            Mounted::Ext4(fs) => fs.apply_create(value, 0o600).map(|_| ()).map_err(error),
+            Mounted::Ext4(fs) => fs
+                .apply_create(value, 0o600)
+                .and_then(|_| inherit_label(fs, value))
+                .map_err(error),
         };
         self.mutation(result)
     }
@@ -533,7 +552,10 @@ impl Session {
                 .create_dir(&value[1..])
                 .map(|_| ())
                 .map_err(error),
-            Mounted::Ext4(fs) => fs.apply_mkdir(value, 0o700).map(|_| ()).map_err(error),
+            Mounted::Ext4(fs) => fs
+                .apply_mkdir(value, 0o700)
+                .and_then(|_| inherit_label(fs, value))
+                .map_err(error),
         };
         self.mutation(result)
     }
